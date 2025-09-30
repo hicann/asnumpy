@@ -1,0 +1,30 @@
+[build-system]
+requires = [
+  "setuptools>=78",
+  "wheel",
+  "numpy>=1.24",
+  "cmake>=3.22",
+  "ninja",
+  "pybind11>=3.0.0"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "asnumpy"
+version = "0.0.1"
+description = "asnumpy"
+readme = "README.md"
+authors = [{ name = "神里绫华的狗", email = "wuzhenqing@stu.hit.edu.cn" }]
+license = "Apache-2.0"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: POSIX :: Linux"
+]
+requires-python = ">=3.9"
+dependencies = [
+    "numpy>=1.24.0",
+    "pybind11>=3.0.0"
+]
+
+[tool.setuptools.packages.find]
+where = ["."]

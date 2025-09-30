@@ -1,0 +1,38 @@
+pybind11_add_module(asnumpy_core
+    asnumpy.cpp
+    bind_array.cpp
+    bind_cann.cpp
+    bind_dtypes.cpp
+    bind_fft.cpp
+    bind_linalg.cpp
+    bind_math.cpp
+    bind_random.cpp
+    bind_testing.cpp
+    bind_utils.cpp
+    bind_version.cpp)
+
+target_include_directories(asnumpy_core 
+    PUBLIC 
+    ${CMAKE_SOURCE_DIR}/include
+    ${Python3_NumPy_INCLUDE_DIRS}
+)
+
+target_link_libraries(asnumpy_core 
+    PUBLIC 
+    ascendcl 
+    runtime 
+    nnopbase 
+    opapi
+    Python3::NumPy
+)
+target_link_libraries(asnumpy_core
+    PUBLIC
+    cann
+    utils
+    linalg
+    math
+    )
+
+set_target_properties(asnumpy_core PROPERTIES
+	LIBRARY_OUTPUT_DIRECTORY "${PYTHON_MODULE_OUTPUT_DIR}"
+)

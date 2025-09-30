@@ -1,0 +1,42 @@
+#include <pybind11/detail/common.h>
+#include <pybind11/pybind11.h>
+
+void bind_array(pybind11::module_& array);
+void bind_cann(pybind11::module_& cann);
+void bind_dtypes(pybind11::module_& dtypes);
+void bind_fft(pybind11::module_& fft);
+void bind_linalg(pybind11::module_& linalg);
+void bind_linalg_no_submodule(pybind11::module_& m);
+void bind_math(pybind11::module_& math);
+void bind_random(pybind11::module_& random);
+void bind_testing(pybind11::module_& testing);
+void bind_utils(pybind11::module_& utils);
+void bind_version(pybind11::module_& version);
+
+
+PYBIND11_MODULE(asnumpy_core, module) {
+    module.doc() = "*** AsNumpy Core ***";
+    auto array = module.def_submodule("array");
+    auto cann = module.def_submodule("cann");
+    auto dtypes = module.def_submodule("dtypes");
+    auto fft = module.def_submodule("fft");
+    auto linalg = module.def_submodule("linalg");
+    auto math = module.def_submodule("math");
+    auto random = module.def_submodule("random");
+    auto testing = module.def_submodule("testing");
+    // auto utils = module.def_submodule("utils");
+    auto version = module.def_submodule("version");
+    
+
+    bind_array(array);
+    bind_cann(cann);
+    // bind_dtypes(dtypes);
+    bind_fft(fft);
+    bind_linalg(linalg);
+    bind_linalg_no_submodule(module);
+    bind_math(math);
+    bind_random(random);
+    bind_testing(testing);
+    bind_utils(module);
+    bind_version(version);
+}

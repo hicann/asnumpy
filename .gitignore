@@ -1,0 +1,21 @@
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+.idea
+
+# Optimized build/artifact ignore patterns
+**/build/
+**/.xmake/
+**/.cache/
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.so
+core/.xmake
+
+cmake-build-debug
+asnumpy.egg-info

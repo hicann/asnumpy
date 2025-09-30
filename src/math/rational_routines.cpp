@@ -1,0 +1,207 @@
+#include <asnumpy/math/rational_routines.hpp>
+
+#include <acl/acl.h>
+#include <aclnn/aclnn_base.h>
+#include <aclnnop/aclnn_mul.h>
+#include <aclnnop/aclnn_abs.h>
+#include <aclnnop/aclnn_div.h>
+#include <aclnnop/aclnn_gcd.h>
+
+#include <fmt/base.h>
+#include <fmt/format.h>
+#include <stdexcept>
+
+/**
+ * @brief Compute element-wise least common multiple (LCM).
+ * 
+ * Equivalent to numpy.lcm(x1, x2), returns the smallest positive integer divisible by both x1 and x2.
+ * 
+ * @param x1 NPUArray, input array (integer type)
+ * @param x2 NPUArray, input array (integer type)
+ * @return NPUArray Element-wise LCM of x1 and x2
+ */
+/**
+ * @brief Compute element-wise least common multiple (LCM).
+ * 
+ * Equivalent to numpy.lcm(x1, x2), returns the smallest positive integer divisible by both x1 and x2.
+ * Implemented using the relationship: LCM(a, b) = |a * b| / GCD(a, b)
+ * 
+ * @param x1 NPUArray, input array (integer type)
+ * @param x2 NPUArray, input array (integer type)
+ * @return NPUArray Element-wise LCM of x1 and x2
+ */
+NPUArray Lcm(const NPUArray& x1, const NPUArray& x2) {
+    // 检查输入形状是否匹配
+    if (x1.shape != x2.shape) {
+        throw std::invalid_argument("Lcm: x1 and x2 must have the same shape");
+    }
+
+    // 初始化中间结果和最终结果数组
+    auto shape = x1.shape;
+    auto dtype = x1.dtype;
+    auto acl_dtype = x1.aclDtype;
+
+    // 步骤1: 计算x1和x2的乘积 (a * b)
+    NPUArray product(shape, dtype);
+    uint64_t mul_workspace_size = 0;
+    aclOpExecutor* mul_executor = nullptr;
+    auto error = aclnnMulGetWorkspaceSize(
+        x1.tensorPtr, x2.tensorPtr,
+        product.tensorPtr,
+        &mul_workspace_size, &mul_executor
+    );
+    if (error != ACL_SUCCESS) {
+        throw std::runtime_error(fmt::format("Lcm: product workspace size failed, error={}", error));
+    }
+
+    void* mul_workspace = nullptr;
+    if (mul_workspace_size > 0) {
+        error = aclrtMalloc(&mul_workspace, mul_workspace_size, ACL_MEM_MALLOC_HUGE_FIRST);
+        if (error != ACL_SUCCESS) {
+            throw std::runtime_error(fmt::format("Lcm: product workspace malloc failed, error={}", error));
+        }
+    }
+
+    error = aclnnMul(mul_workspace, mul_workspace_size, mul_executor, nullptr);
+    if (error != ACL_SUCCESS) {
+        aclrtFree(mul_workspace);
+        throw std::runtime_error(fmt::format("Lcm: product computation failed, error={}", error));
+    }
+
+    // 步骤2: 计算x1和x2的绝对值乘积 (|a * b|)
+    NPUArray abs_product(shape, dtype);
+    uint64_t abs_workspace_size = 0;
+    aclOpExecutor* abs_executor = nullptr;
+    error = aclnnAbsGetWorkspaceSize(
+        product.tensorPtr, abs_product.tensorPtr,
+        &abs_workspace_size, &abs_executor
+    );
+    if (error != ACL_SUCCESS) {
+        aclrtFree(mul_workspace);
+        throw std::runtime_error(fmt::format("Lcm: abs workspace size failed, error={}", error));
+    }
+
+    void* abs_workspace = nullptr;
+    if (abs_workspace_size > 0) {
+        error = aclrtMalloc(&abs_workspace, abs_workspace_size, ACL_MEM_MALLOC_HUGE_FIRST);
+        if (error != ACL_SUCCESS) {
+            aclrtFree(mul_workspace);
+            throw std::runtime_error(fmt::format("Lcm: abs workspace malloc failed, error={}", error));
+        }
+    }
+
+    error = aclnnAbs(abs_workspace, abs_workspace_size, abs_executor, nullptr);
+    if (error != ACL_SUCCESS) {
+        aclrtFree(mul_workspace);
+        aclrtFree(abs_workspace);
+        throw std::runtime_error(fmt::format("Lcm: abs computation failed, error={}", error));
+    }
+
+    // 步骤3: 计算x1和x2的最大公约数 (GCD(a, b))
+    NPUArray gcd_result = Gcd(x1, x2);  // 复用已实现的Gcd函数
+
+    // 步骤4: 计算LCM = |a*b| / GCD(a,b)
+    NPUArray result(shape, dtype);
+    uint64_t div_workspace_size = 0;
+    aclOpExecutor* div_executor = nullptr;
+    error = aclnnDivGetWorkspaceSize(
+        abs_product.tensorPtr, gcd_result.tensorPtr,
+        result.tensorPtr,
+        &div_workspace_size, &div_executor
+    );
+    if (error != ACL_SUCCESS) {
+        aclrtFree(mul_workspace);
+        aclrtFree(abs_workspace);
+        throw std::runtime_error(fmt::format("Lcm: division workspace size failed, error={}", error));
+    }
+
+    void* div_workspace = nullptr;
+    if (div_workspace_size > 0) {
+        error = aclrtMalloc(&div_workspace, div_workspace_size, ACL_MEM_MALLOC_HUGE_FIRST);
+        if (error != ACL_SUCCESS) {
+            aclrtFree(mul_workspace);
+            aclrtFree(abs_workspace);
+            throw std::runtime_error(fmt::format("Lcm: division workspace malloc failed, error={}", error));
+        }
+    }
+
+    error = aclnnDiv(div_workspace, div_workspace_size, div_executor, nullptr);
+    if (error != ACL_SUCCESS) {
+        aclrtFree(mul_workspace);
+        aclrtFree(abs_workspace);
+        aclrtFree(div_workspace);
+        throw std::runtime_error(fmt::format("Lcm: division computation failed, error={}", error));
+    }
+
+    // 同步设备并释放所有资源
+    aclrtSynchronizeDevice();
+    aclrtFree(mul_workspace);
+    aclrtFree(abs_workspace);
+    aclrtFree(div_workspace);
+
+    return result;
+}
+    
+
+/**
+ * @brief Compute element-wise greatest common divisor (GCD).
+ * 
+ * Equivalent to numpy.gcd(x1, x2), returns the largest positive integer dividing both x1 and x2.
+ * 
+ * @param x1 NPUArray, input array (integer type)
+ * @param x2 NPUArray, input array (integer type)
+ * @return NPUArray Element-wise GCD of x1 and x2
+ */
+NPUArray Gcd(const NPUArray& x1, const NPUArray& x2) {
+    // 检查输入形状是否匹配
+    if (x1.shape != x2.shape) {
+        throw std::invalid_argument("Gcd: x1 and x2 must have the same shape");
+    }
+
+    // 初始化结果数组（形状和数据类型与输入一致）
+    auto shape = x1.shape;
+    auto dtype = x1.dtype;
+    NPUArray result(shape, dtype);
+
+    // 获取工作空间大小
+    uint64_t workspace_size = 0;
+    aclOpExecutor* executor = nullptr;
+    auto error = aclnnGcdGetWorkspaceSize(
+        x1.tensorPtr,
+        x2.tensorPtr,
+        result.tensorPtr,
+        &workspace_size,
+        &executor
+    );
+    if (error != ACL_SUCCESS) {
+        throw std::runtime_error(fmt::format("Gcd: get workspace size failed, error={}", error));
+    }
+
+    // 分配工作空间
+    void* workspace = nullptr;
+    if (workspace_size > 0) {
+        error = aclrtMalloc(&workspace, workspace_size, ACL_MEM_MALLOC_HUGE_FIRST);
+        if (error != ACL_SUCCESS) {
+            throw std::runtime_error(fmt::format("Gcd: malloc workspace failed, error={}", error));
+        }
+    }
+
+    // 执行最大公约数计算
+    error = aclnnGcd(
+        workspace,
+        workspace_size,
+        executor,
+        nullptr  // 无需回调
+    );
+    if (error != ACL_SUCCESS) {
+        throw std::runtime_error(fmt::format("Gcd: computation failed, error={}", error));
+    }
+
+    // 同步设备并释放资源
+    aclrtSynchronizeDevice();
+    if (workspace != nullptr) {
+        aclrtFree(workspace);
+    }
+
+    return result;
+}
