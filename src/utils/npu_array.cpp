@@ -347,6 +347,8 @@ aclDataType NPUArray::GetACLDataType(py::dtype dtype) {
     if(dtype.is(py::dtype::of<uint32_t>())) return ACL_UINT32;
     if(dtype.is(py::dtype::of<uint64_t>())) return ACL_UINT64;
     if(dtype.is(py::dtype::of<bool>())) return ACL_BOOL;
+    if(dtype.is(py::dtype::of<std::complex<float>>())) return ACL_COMPLEX64;
+    if(dtype.is(py::dtype::of<std::complex<double>>())) return ACL_COMPLEX128;
     throw std::runtime_error("Unsupported py::dtype for aclDataType.");
 }
 
