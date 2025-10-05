@@ -181,3 +181,33 @@ aclScalar* CreateScalar(ValueType value, aclDataType dtype) {
             throw std::runtime_error("Unsupported dtype: " + std::to_string(static_cast<int>(dtype)));
     }
 }
+
+// =====================
+// Explicit instantiations
+// =====================
+
+// 1) CreateScalar(T value) —— 自动类型推导版本
+template aclScalar* CreateScalar<float>(float);
+template aclScalar* CreateScalar<double>(double);
+template aclScalar* CreateScalar<int32_t>(int32_t);
+template aclScalar* CreateScalar<int64_t>(int64_t);
+template aclScalar* CreateScalar<int16_t>(int16_t);
+template aclScalar* CreateScalar<int8_t>(int8_t);
+template aclScalar* CreateScalar<uint64_t>(uint64_t);
+template aclScalar* CreateScalar<uint32_t>(uint32_t);
+template aclScalar* CreateScalar<uint16_t>(uint16_t);
+template aclScalar* CreateScalar<uint8_t>(uint8_t);
+template aclScalar* CreateScalar<bool>(bool);
+
+// 2) CreateScalar(ValueType value, aclDataType dtype) —— 显式 dtype 版本
+template aclScalar* CreateScalar<float>(float, aclDataType);
+template aclScalar* CreateScalar<double>(double, aclDataType);
+template aclScalar* CreateScalar<int32_t>(int32_t, aclDataType);
+template aclScalar* CreateScalar<int64_t>(int64_t, aclDataType);
+template aclScalar* CreateScalar<int16_t>(int16_t, aclDataType);
+template aclScalar* CreateScalar<int8_t>(int8_t, aclDataType);
+template aclScalar* CreateScalar<uint64_t>(uint64_t, aclDataType);
+template aclScalar* CreateScalar<uint32_t>(uint32_t, aclDataType);
+template aclScalar* CreateScalar<uint16_t>(uint16_t, aclDataType);
+template aclScalar* CreateScalar<uint8_t>(uint8_t, aclDataType);
+template aclScalar* CreateScalar<bool>(bool, aclDataType);
