@@ -20,6 +20,8 @@
 #include <limits>
 #include <stdexcept>
 
+namespace asnumpy {
+
 /**NPUArray Convolve(const NPUArray& a, const NPUArray& v) {
     std::vector<int64_t> dims = {2};
     auto dims_acl = aclCreateIntArray(dims.data(), 1);
@@ -140,12 +142,12 @@ NPUArray Clip(const NPUArray& a, const NPUArray& a_min, const NPUArray& a_max) {
         if (detailed_msg && std::strlen(detailed_msg) > 0) error_msg += " - " + std::string(detailed_msg);
         throw std::runtime_error(error_msg);
     }
-    if (workspaceSize < 0) {
+    if (workspaceSize < 0ULL) {
         throw std::runtime_error("[miscellaneous.cpp](clip) Invalid workspaceSize: " + std::to_string(workspaceSize));
     }
 
     void* workspaceAddr = nullptr;
-    if(workspaceSize > 0) {
+    if(workspaceSize > 0ULL) {
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
             std::string error_msg = "[miscellaneous.cpp](clip) aclrtMalloc error = " + std::to_string(error);
@@ -185,12 +187,12 @@ NPUArray Clip(const NPUArray& a, float a_min, float a_max) {
     aclOpExecutor* executor;
     auto error = aclnnClampGetWorkspaceSize(a.tensorPtr, amin_scalar, amax_scalar, result.tensorPtr, &workspaceSize, &executor);
     CheckGetWorkspaceSizeAclnnStatus(error);
-    if (workspaceSize < 0) {
+    if (workspaceSize < 0ULL) {
         throw std::runtime_error("[miscellaneous.cpp](clip) Invalid workspaceSize: " + std::to_string(workspaceSize));
     }
 
     void* workspaceAddr = nullptr;
-    if(workspaceSize > 0) {
+    if(workspaceSize > 0ULL) {
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         CheckMallocAclnnStatus(error);
     }
@@ -212,12 +214,12 @@ NPUArray Clip(const NPUArray& a, float a_min, const NPUArray& a_max) {
     aclOpExecutor* executor1;
     auto error1 = aclnnClampMinGetWorkspaceSize(a.tensorPtr, amin_scalar, temp.tensorPtr, &workspaceSize1, &executor1);
     CheckGetWorkspaceSizeAclnnStatus(error1);
-    if (workspaceSize1 < 0) {
+    if (workspaceSize1 < 0ULL) {
         throw std::runtime_error("[miscellaneous.cpp](clip) Invalid workspaceSize: " + std::to_string(workspaceSize1));
     }
 
     void* workspaceAddr1 = nullptr;
-    if(workspaceSize1 > 0) {
+    if(workspaceSize1 > 0ULL) {
         error1 = aclrtMalloc(&workspaceAddr1, workspaceSize1, ACL_MEM_MALLOC_HUGE_FIRST);
         CheckMallocAclnnStatus(error1);
     }
@@ -261,12 +263,12 @@ NPUArray Clip(const NPUArray& a, const NPUArray& a_min, float a_max) {
     aclOpExecutor* executor1;
     auto error1 = aclnnClampMaxGetWorkspaceSize(a.tensorPtr, amax_scalar, temp.tensorPtr, &workspaceSize1, &executor1);
     CheckGetWorkspaceSizeAclnnStatus(error1);
-    if (workspaceSize1 < 0) {
+    if (workspaceSize1 < 0ULL) {
         throw std::runtime_error("[miscellaneous.cpp](clip) Invalid workspaceSize: " + std::to_string(workspaceSize1));
     }
 
     void* workspaceAddr1 = nullptr;
-    if(workspaceSize1 > 0) {
+    if(workspaceSize1 > 0ULL) {
         error1 = aclrtMalloc(&workspaceAddr1, workspaceSize1, ACL_MEM_MALLOC_HUGE_FIRST);
         CheckMallocAclnnStatus(error1);
     }
@@ -329,7 +331,7 @@ NPUArray Square(const NPUArray& x) {
 
     // 分配 workspace
     void* workspaceAddr = nullptr;
-    if (workspaceSize > 0) {
+    if (workspaceSize > 0ULL) {
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
             std::string error_msg = "[miscellaneous.cpp](square) aclrtMalloc error = " + std::to_string(error);
@@ -377,7 +379,7 @@ DEFINE_BINARY_OP(Heaviside, aclnnHeavisideGetWorkspaceSize, aclnnHeaviside)
 NPUArray Fabs(const NPUArray& x){
     // absolute 处理所有数据类型（包括复数等） fabs只处理float和int，
     // 但aclnnAbs不支持复数，所以这里默认fabs=absolute
-    return Absolute(x);
+    return asnumpy::Absolute(x);
 }
 
 /**
@@ -407,12 +409,12 @@ NPUArray Nan_to_num(const NPUArray& x, float nan, py::object posinf, py::object 
         &executor
     );
     CheckGetWorkspaceSizeAclnnStatus(error);
-    if (workspaceSize < 0) {
+    if (workspaceSize < 0ULL) {
         throw std::runtime_error("[floating_point_routines.cpp](nan_to_num) Invalid workspaceSize: " + std::to_string(workspaceSize));
     }
 
     void* workspaceAddr = nullptr;
-    if (workspaceSize > 0) {
+    if (workspaceSize > 0ULL) {
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         CheckMallocAclnnStatus(error);
     }
@@ -466,13 +468,13 @@ NPUArray Maximum(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype
             error_msg += " - " + std::string(detailed_msg);
         throw std::runtime_error(error_msg);
     }
-    if (workspaceSize < 0) {
+    if (workspaceSize < 0ULL) {
         throw std::runtime_error("[Maximum] Invalid workspaceSize: " + std::to_string(workspaceSize));
     }
 
     // 5. 分配 workspace
     void* workspaceAddr = nullptr;
-    if (workspaceSize > 0) {
+    if (workspaceSize > 0ULL) {
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
             std::string error_msg = "[Maximum] aclrtMalloc error = " + std::to_string(error);
@@ -552,12 +554,12 @@ NPUArray Minimum(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype
             error_msg += " - " + std::string(detailed_msg);
         throw std::runtime_error(error_msg);
     }
-    if (workspaceSize < 0) {
+    if (workspaceSize < 0ULL) {
         throw std::runtime_error("[miscellaneous.cpp](minimum) Invalid workspaceSize: " + std::to_string(workspaceSize));
     }
 
     void* workspaceAddr = nullptr;
-    if (workspaceSize > 0) {
+    if (workspaceSize > 0ULL) {
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
             std::string error_msg = "[miscellaneous.cpp](minimum) aclrtMalloc error = " + std::to_string(error);
@@ -620,12 +622,12 @@ NPUArray Fmax(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> d
             error_msg += " - " + std::string(detailed_msg);
         throw std::runtime_error(error_msg);
     }
-    if (workspaceSize < 0) {
+    if (workspaceSize < 0ULL) {
         throw std::runtime_error("[miscellaneous.cpp](fmax) Invalid workspaceSize: " + std::to_string(workspaceSize));
     }
 
     void* workspaceAddr = nullptr;
-    if (workspaceSize > 0) {
+    if (workspaceSize > 0ULL) {
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
             std::string error_msg = "[miscellaneous.cpp](fmax) aclrtMalloc error = " + std::to_string(error);
@@ -688,12 +690,12 @@ NPUArray Fmin(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> d
             error_msg += " - " + std::string(detailed_msg);
         throw std::runtime_error(error_msg);
     }
-    if (workspaceSize < 0) {
+    if (workspaceSize < 0ULL) {
         throw std::runtime_error("[miscellaneous.cpp](fmin) Invalid workspaceSize: " + std::to_string(workspaceSize));
     }
 
     void* workspaceAddr = nullptr;
-    if (workspaceSize > 0) {
+    if (workspaceSize > 0ULL) {
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
             std::string error_msg = "[miscellaneous.cpp](fmin) aclrtMalloc error = " + std::to_string(error);
@@ -729,4 +731,6 @@ NPUArray Fmin(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> d
     }
 
     return out;
+}
+
 }

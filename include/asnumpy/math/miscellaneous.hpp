@@ -7,6 +7,7 @@
 
 #include <utility>
 
+namespace asnumpy {
 
 //NPUArray Convolve(const NPUArray& a, const NPUArray& v);
 
@@ -34,3 +35,5 @@ NPUArray Minimum(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype
 NPUArray Fmax(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> dtype = std::nullopt);
 
 NPUArray Fmin(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> dtype = std::nullopt);
+
+}
