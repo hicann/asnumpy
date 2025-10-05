@@ -473,7 +473,8 @@ namespace asnumpy {
                 aclrtMemcpy(scalar_factor_ptr, sizeof(double), &rad_factor, sizeof(double), ACL_MEMCPY_HOST_TO_DEVICE);
             } else if (x.aclDtype == ACL_FLOAT16) {
                 float factor_float = static_cast<float>(rad_factor);
-                uint32_t float_bits = *reinterpret_cast<uint32_t*>(&factor_float);
+                uint32_t float_bits;
+                std::memcpy(&float_bits, &factor_float, sizeof(float_bits));
                 uint16_t fp16_bits = static_cast<uint16_t>(
                     ((float_bits >> 16) & 0x8000U) |
                     (((float_bits >> 13) - 0x1C000U) & 0x7C00U) |
