@@ -8,6 +8,7 @@
 #include <fmt/format.h>
 #include <stdexcept>
 
+namespace asnumpy {
 
 /**
  * @brief Compute element-wise sign bit check.
@@ -62,4 +63,6 @@ NPUArray Signbit(const NPUArray& x) {
     }
 
     return result;
+}
+
 }

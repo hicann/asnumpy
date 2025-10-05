@@ -7,4 +7,8 @@
 
 #include <utility>
 
+namespace asnumpy {
+
 NPUArray Signbit(const NPUArray& x);
+
+}
