@@ -5,26 +5,29 @@
 #include <acl/acl.h>
 #include <aclnn/aclnn_base.h>
 
+#include <optional>
 #include <utility>
 
-NPUArray Prod(const NPUArray& a, int64_t axis, py::dtype dtype, bool keepdims);
-NPUArray Prod(const NPUArray& a, py::dtype dtype);
+namespace asnumpy {
+    NPUArray Prod(const NPUArray& a, int64_t axis, bool keepdims, std::optional<py::dtype> dtype=std::nullopt);
+    double Prod(const NPUArray& a);
 
-NPUArray Sum(const NPUArray& a, const std::vector<int64_t>& axis, py::dtype dtype, bool keepdims);
-double Sum(const NPUArray& a);
-    
-NPUArray Nanprod(const NPUArray& a, int64_t axis, py::dtype dtype, bool keepdims);
-NPUArray Nanprod(const NPUArray& a, py::dtype dtype);
+    NPUArray Sum(const NPUArray& a, int64_t axis, bool keepdims, std::optional<py::dtype> dtype=std::nullopt);
+    double Sum(const NPUArray& a);
+        
+    NPUArray Nanprod(const NPUArray& a, int64_t axis, bool keepdims, std::optional<py::dtype> dtype=std::nullopt);
+    double Nanprod(const NPUArray& a);
 
-NPUArray Nansum(const NPUArray& a, const std::vector<int64_t>& axis, py::dtype dtype, bool keepdims);
-NPUArray Nansum(const NPUArray& a, py::dtype dtype);
+    NPUArray Nansum(const NPUArray& a, int64_t axis, bool keepdims, std::optional<py::dtype> dtype=std::nullopt);
+    double Nansum(const NPUArray& a);
 
-NPUArray Cumprod(const NPUArray& a, int64_t axis, py::dtype dtype);
+    NPUArray Cumprod(const NPUArray& a, int64_t axis, std::optional<py::dtype> dtype=std::nullopt);
 
-NPUArray Cumsum(const NPUArray& a, int64_t axis, py::dtype dtype);
+    NPUArray Cumsum(const NPUArray& a, int64_t axis, std::optional<py::dtype> dtype=std::nullopt);
 
-NPUArray Nancumprod(const NPUArray& a, int64_t axis, py::dtype dtype);
+    NPUArray Nancumprod(const NPUArray& a, int64_t axis, std::optional<py::dtype> dtype=std::nullopt);
 
-NPUArray Nancumsum(const NPUArray& a, int64_t axis, py::dtype dtype);
+    NPUArray Nancumsum(const NPUArray& a, int64_t axis, std::optional<py::dtype> dtype=std::nullopt);
 
-NPUArray Cross(const NPUArray& a, const NPUArray& b, int64_t axisa, int64_t axisb, int64_t axisc, int64_t axis);
+    NPUArray Cross(const NPUArray& a, const NPUArray& b, int64_t axis);
+}
