@@ -8,15 +8,8 @@
 #include <fmt/format.h>
 #include <stdexcept>
 
+namespace asnumpy {
 
-/**
- * @brief Compute element-wise sign bit check.
- * 
- * Equivalent to numpy.signbit(x), returns a boolean array indicating whether the sign bit is set (negative values).
- * 
- * @param x NPUArray, input array (numeric type)
- * @return NPUArray Boolean array where True indicates negative elements (sign bit set)
- */
 NPUArray Signbit(const NPUArray& x) {
     // 初始化结果数组（形状与输入一致，数据类型为布尔型）
     auto shape = x.shape;
@@ -37,7 +30,7 @@ NPUArray Signbit(const NPUArray& x) {
 
     // 分配工作空间
     void* workspace = nullptr;
-    if (workspace_size > 0) {
+    if (workspace_size > 0ULL) {
         error = aclrtMalloc(&workspace, workspace_size, ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
             throw std::runtime_error(fmt::format("Signbit: malloc workspace failed, error={}", error));
@@ -62,4 +55,5 @@ NPUArray Signbit(const NPUArray& x) {
     }
 
     return result;
+}
 }
