@@ -52,7 +52,9 @@ namespace asnumpy {
         error = aclrtSynchronizeDevice();
         CheckSynchronizeDeviceAclnnStatus(error);
 
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
 
         return out;
     }
@@ -87,7 +89,9 @@ namespace asnumpy {
         error = aclrtSynchronizeDevice();
         CheckSynchronizeDeviceAclnnStatus(error);
 
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
 
         return out;
     }
@@ -122,7 +126,9 @@ namespace asnumpy {
         error = aclrtSynchronizeDevice();
         CheckSynchronizeDeviceAclnnStatus(error);
 
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
 
         return out;
     }
@@ -368,10 +374,18 @@ namespace asnumpy {
         error = aclrtSynchronizeDevice();
         CheckSynchronizeDeviceAclnnStatus(error);
         aclDestroyScalar(alpha_scalar);
-        if (a_sq_workspace) aclrtFree(a_sq_workspace);
-        if (b_sq_workspace) aclrtFree(b_sq_workspace);
-        if (add_workspace) aclrtFree(add_workspace);
-        if (sqrt_workspace) aclrtFree(sqrt_workspace);
+        if (a_sq_workspace) {
+            aclrtFree(a_sq_workspace);
+        }
+        if (b_sq_workspace) {
+            aclrtFree(b_sq_workspace);
+        }
+        if (add_workspace) {
+            aclrtFree(add_workspace);
+        }
+        if (sqrt_workspace) {
+            aclrtFree(sqrt_workspace);
+        }
 
         return result;
     }
@@ -411,7 +425,9 @@ namespace asnumpy {
         // 同步设备并释放资源
         error = aclrtSynchronizeDevice();
         CheckSynchronizeDeviceAclnnStatus(error);
-        if (workspace) aclrtFree(workspace);
+        if (workspace) {
+            aclrtFree(workspace);
+        }
 
         return result;
     }
@@ -459,9 +475,9 @@ namespace asnumpy {
                 float factor_float = static_cast<float>(rad_factor);
                 uint32_t float_bits = *reinterpret_cast<uint32_t*>(&factor_float);
                 uint16_t fp16_bits = static_cast<uint16_t>(
-                    ((float_bits >> 16) & 0x8000) |
-                    (((float_bits >> 13) - 0x1C000) & 0x7C00) |
-                    ((float_bits >> 13) & 0x03FF)
+                    ((float_bits >> 16) & 0x8000U) |
+                    (((float_bits >> 13) - 0x1C000U) & 0x7C00U) |
+                    ((float_bits >> 13) & 0x03FFU)
                 );
                 aclrtMemcpy(scalar_factor_ptr, sizeof(uint16_t), &fp16_bits, sizeof(uint16_t), ACL_MEMCPY_HOST_TO_DEVICE);
             }
@@ -503,10 +519,18 @@ namespace asnumpy {
         }
         catch (const std::exception& e) {
             // 释放资源（包含张量列表）
-            if (workspace_addr != nullptr) aclrtFree(workspace_addr);
-            if (input_list != nullptr) aclDestroyTensorList(input_list);
-            if (output_list != nullptr) aclDestroyTensorList(output_list);
-            if (stream != nullptr) aclrtDestroyStream(stream);
+            if (workspace_addr != nullptr) {
+                aclrtFree(workspace_addr);
+            }
+            if (input_list != nullptr) {
+                aclDestroyTensorList(input_list);
+            }
+            if (output_list != nullptr) {
+                aclDestroyTensorList(output_list);
+            }
+            if (stream != nullptr) {
+                aclrtDestroyStream(stream);
+            }
             throw;
         }
 
