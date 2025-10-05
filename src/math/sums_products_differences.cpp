@@ -43,7 +43,7 @@ namespace asnumpy {
         auto error = aclnnProdDimGetWorkspaceSize(a.tensorPtr, axis, keepdims, result.aclDtype, result.tensorPtr, &workspaceSize, &executor);
         CheckGetWorkspaceSizeAclnnStatus(error);
         void* workspaceAddr = nullptr;
-        if(workspaceSize > 0) {
+        if(workspaceSize != 0ULL) {
             error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
             CheckMallocAclnnStatus(error);
         }
@@ -62,7 +62,7 @@ namespace asnumpy {
         auto error = aclnnProdGetWorkspaceSize(a.tensorPtr, result.aclDtype, result.tensorPtr, &workspaceSize, &executor);
         CheckGetWorkspaceSizeAclnnStatus(error);
         void* workspaceAddr = nullptr;
-        if(workspaceSize > 0) {
+        if(workspaceSize != 0ULL) {
             error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
             CheckMallocAclnnStatus(error);
         }
@@ -113,7 +113,7 @@ namespace asnumpy {
         auto error = aclnnReduceSumGetWorkspaceSize(a.tensorPtr, axis_array, keepdims, result.aclDtype, result.tensorPtr, &workspaceSize, &executor);
         CheckGetWorkspaceSizeAclnnStatus(error);
         void* workspaceAddr = nullptr;
-        if(workspaceSize > 0) {
+        if(workspaceSize != 0ULL) {
             error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
             CheckMallocAclnnStatus(error);
         }
@@ -137,7 +137,7 @@ namespace asnumpy {
         auto error1 = aclnnFlattenGetWorkspaceSize(a.tensorPtr, 0, temp.tensorPtr, &workspaceSize1, &executor1);
         CheckGetWorkspaceSizeAclnnStatus(error1);
         void* workspaceAddr1 = nullptr;
-        if(workspaceSize1 > 0) {
+        if(workspaceSize1 != 0ULL) {
             error1 = aclrtMalloc(&workspaceAddr1, workspaceSize1, ACL_MEM_MALLOC_HUGE_FIRST);
             CheckMallocAclnnStatus(error1);
         }
@@ -154,7 +154,7 @@ namespace asnumpy {
         auto error2 = aclnnReduceSumGetWorkspaceSize(temp.tensorPtr, axis_array, false, result.aclDtype, result.tensorPtr, &workspaceSize2, &executor2);
         CheckGetWorkspaceSizeAclnnStatus(error2);
         void* workspaceAddr2 = nullptr;
-        if(workspaceSize2 > 0) {
+        if(workspaceSize2 != 0ULL) {
             error2 = aclrtMalloc(&workspaceAddr2, workspaceSize2, ACL_MEM_MALLOC_HUGE_FIRST);
             CheckMallocAclnnStatus(error2);
         }
@@ -206,7 +206,7 @@ namespace asnumpy {
             std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), temp.tensorPtr, &workspaceSize1, &executor1);
         CheckGetWorkspaceSizeAclnnStatus(error1);
         void* workspaceAddr1 = nullptr;
-        if(workspaceSize1 > 0) {
+        if(workspaceSize1 != 0ULL) {
             error1 = aclrtMalloc(&workspaceAddr1, workspaceSize1, ACL_MEM_MALLOC_HUGE_FIRST);
             CheckMallocAclnnStatus(error1);
         }
@@ -220,7 +220,7 @@ namespace asnumpy {
         auto error2 = aclnnProdDimGetWorkspaceSize(temp.tensorPtr, axis, keepdims, result.aclDtype, result.tensorPtr, &workspaceSize2, &executor2);
         CheckGetWorkspaceSizeAclnnStatus(error2);
         void* workspaceAddr2 = nullptr;
-        if(workspaceSize2 > 0) {
+        if(workspaceSize2 != 0ULL) {
             error2 = aclrtMalloc(&workspaceAddr2, workspaceSize2, ACL_MEM_MALLOC_HUGE_FIRST);
             CheckMallocAclnnStatus(error2);
         }
@@ -242,7 +242,7 @@ namespace asnumpy {
             std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), temp.tensorPtr, &workspaceSize1, &executor1);
         CheckGetWorkspaceSizeAclnnStatus(error1);
         void* workspaceAddr1 = nullptr;
-        if(workspaceSize1 > 0) {
+        if(workspaceSize1 != 0ULL) {
             error1 = aclrtMalloc(&workspaceAddr1, workspaceSize1, ACL_MEM_MALLOC_HUGE_FIRST);
             CheckMallocAclnnStatus(error1);
         }
@@ -256,7 +256,7 @@ namespace asnumpy {
         auto error2 = aclnnProdGetWorkspaceSize(temp.tensorPtr, result.aclDtype, result.tensorPtr, &workspaceSize2, &executor2);
         CheckGetWorkspaceSizeAclnnStatus(error2);
         void* workspaceAddr2 = nullptr;
-        if(workspaceSize2 > 0) {
+        if(workspaceSize2 != 0ULL) {
             error2 = aclrtMalloc(&workspaceAddr2, workspaceSize2, ACL_MEM_MALLOC_HUGE_FIRST);
             CheckMallocAclnnStatus(error2);
         }
@@ -308,7 +308,7 @@ namespace asnumpy {
         auto error = aclnnReduceNansumGetWorkspaceSize(a.tensorPtr, axis_array, keepdims, result.aclDtype, result.tensorPtr, &workspaceSize, &executor);
         CheckGetWorkspaceSizeAclnnStatus(error);
         void* workspaceAddr = nullptr;
-        if(workspaceSize > 0) {
+        if(workspaceSize != 0ULL) {
             error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
             CheckMallocAclnnStatus(error);
         }
@@ -332,7 +332,7 @@ namespace asnumpy {
         auto error1 = aclnnFlattenGetWorkspaceSize(a.tensorPtr, 0, temp.tensorPtr, &workspaceSize1, &executor1);
         CheckGetWorkspaceSizeAclnnStatus(error1);
         void* workspaceAddr1 = nullptr;
-        if(workspaceSize1 > 0) {
+        if(workspaceSize1 != 0ULL) {
             error1 = aclrtMalloc(&workspaceAddr1, workspaceSize1, ACL_MEM_MALLOC_HUGE_FIRST);
             CheckMallocAclnnStatus(error1);
         }
@@ -349,7 +349,7 @@ namespace asnumpy {
         auto error2 = aclnnReduceNansumGetWorkspaceSize(temp.tensorPtr, axis_array, false, result.aclDtype, result.tensorPtr, &workspaceSize2, &executor2);
         CheckGetWorkspaceSizeAclnnStatus(error2);
         void* workspaceAddr2 = nullptr;
-        if(workspaceSize2 > 0) {
+        if(workspaceSize2 != 0ULL) {
             error2 = aclrtMalloc(&workspaceAddr2, workspaceSize2, ACL_MEM_MALLOC_HUGE_FIRST);
             CheckMallocAclnnStatus(error2);
         }
@@ -389,7 +389,7 @@ namespace asnumpy {
         auto error = aclnnCumprodGetWorkspaceSize(a.tensorPtr, axis_scalar, result.aclDtype, result.tensorPtr, &workspaceSize, &executor);
         CheckGetWorkspaceSizeAclnnStatus(error);
         void* workspaceAddr = nullptr;
-        if(workspaceSize > 0) {
+        if(workspaceSize != 0ULL) {
             error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
             CheckMallocAclnnStatus(error);
         }
@@ -409,7 +409,7 @@ namespace asnumpy {
         auto error = aclnnCumsumGetWorkspaceSize(a.tensorPtr, axis, result.aclDtype, result.tensorPtr, &workspaceSize, &executor);
         CheckGetWorkspaceSizeAclnnStatus(error);
         void* workspaceAddr = nullptr;
-        if(workspaceSize > 0) {
+        if(workspaceSize != 0ULL) {
             error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
             CheckMallocAclnnStatus(error);
         }
@@ -433,7 +433,7 @@ namespace asnumpy {
             std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), temp.tensorPtr, &workspaceSize1, &executor1);
         CheckGetWorkspaceSizeAclnnStatus(error1);
         void* workspaceAddr1 = nullptr;
-        if(workspaceSize1 > 0) {
+        if(workspaceSize1 != 0ULL) {
             error1 = aclrtMalloc(&workspaceAddr1, workspaceSize1, ACL_MEM_MALLOC_HUGE_FIRST);
             CheckMallocAclnnStatus(error1);
         }
@@ -447,7 +447,7 @@ namespace asnumpy {
         auto error2 = aclnnCumprodGetWorkspaceSize(temp.tensorPtr, axis_scalar, result.aclDtype, result.tensorPtr, &workspaceSize2, &executor2);
         CheckGetWorkspaceSizeAclnnStatus(error2);
         void* workspaceAddr2 = nullptr;
-        if(workspaceSize2 > 0) {
+        if(workspaceSize2 != 0ULL) {
             error2 = aclrtMalloc(&workspaceAddr2, workspaceSize2, ACL_MEM_MALLOC_HUGE_FIRST);
             CheckMallocAclnnStatus(error2);
         }
@@ -470,7 +470,7 @@ namespace asnumpy {
             std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), temp.tensorPtr, &workspaceSize1, &executor1);
         CheckGetWorkspaceSizeAclnnStatus(error1);
         void* workspaceAddr1 = nullptr;
-        if(workspaceSize1 > 0) {
+        if(workspaceSize1 != 0ULL) {
             error1 = aclrtMalloc(&workspaceAddr1, workspaceSize1, ACL_MEM_MALLOC_HUGE_FIRST);
             CheckMallocAclnnStatus(error1);
         }
@@ -484,7 +484,7 @@ namespace asnumpy {
         auto error2 = aclnnCumsumGetWorkspaceSize(temp.tensorPtr, axis, result.aclDtype, result.tensorPtr, &workspaceSize2, &executor2);
         CheckGetWorkspaceSizeAclnnStatus(error2);
         void* workspaceAddr2 = nullptr;
-        if(workspaceSize2 > 0) {
+        if(workspaceSize2 != 0ULL) {
             error2 = aclrtMalloc(&workspaceAddr2, workspaceSize2, ACL_MEM_MALLOC_HUGE_FIRST);
             CheckMallocAclnnStatus(error2);
         }
@@ -504,7 +504,7 @@ namespace asnumpy {
         auto error = aclnnLinalgCrossGetWorkspaceSize(a.tensorPtr, b.tensorPtr, axis, result.tensorPtr, &workspaceSize, &executor);
         CheckGetWorkspaceSizeAclnnStatus(error);
         void* workspaceAddr = nullptr;
-        if(workspaceSize > 0) {
+        if(workspaceSize != 0ULL) {
             error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
             CheckMallocAclnnStatus(error);
         }
