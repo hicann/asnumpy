@@ -7,4 +7,6 @@
 
 #include <utility>
 
-NPUArray Real(const NPUArray& val);
+namespace asnumpy{
+    NPUArray Real(const NPUArray& val);
+}
