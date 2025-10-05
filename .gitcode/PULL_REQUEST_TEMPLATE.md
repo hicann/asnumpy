@@ -1,8 +1,3 @@
-<!--
-*  如果是新功能或API变更，请先联系我们: wuzhenqing2002@gmail.com或2106975800@qq.com
-*  如果我们尚未回复，您可联系: wuzhenqing2002@gmail.com或者tonghuasu@gmail.com
--->
-
 ## 类型
 - [ ] Bug修复
 - [ ] 新功能
