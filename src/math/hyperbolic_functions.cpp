@@ -327,7 +327,6 @@ NPUArray Arccosh(const NPUArray& x, std::optional<py::dtype> dtype) {
 
 NPUArray Arctanh(const NPUArray& x, std::optional<py::dtype> dtype) {
     // 初始化结果数组（形状和数据类型与输入一致）
-    auto shape = x.shape;
     py::dtype py_dtype = x.dtype;
     aclDataType in_dtype = NPUArray::GetACLDataType(py_dtype);
     aclDataType out_dtype = in_dtype;
@@ -342,7 +341,7 @@ NPUArray Arctanh(const NPUArray& x, std::optional<py::dtype> dtype) {
         out_py_dtype = *dtype;
         out_dtype = NPUArray::GetACLDataType(out_py_dtype);
     }
-    NPUArray result(shape, out_py_dtype);
+    NPUArray result(x.shape, out_py_dtype);
 
     // 获取工作空间大小
     uint64_t workspace_size = 0;
