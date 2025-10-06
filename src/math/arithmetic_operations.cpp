@@ -982,7 +982,7 @@ std::pair<NPUArray, NPUArray> Divmod(const NPUArray& x1, const NPUArray& x2, std
     }
 
     void* ws_addr = nullptr;
-    if (ws_size > 0) {
+    if (ws_size > 0ULL) {
         error = aclrtMalloc(&ws_addr, ws_size, ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
             throw std::runtime_error("[arithmetic_operations.cpp](Divmod) aclrtMalloc error = "
