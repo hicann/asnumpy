@@ -6,6 +6,8 @@
 
 #include <utility>
 
+namespace asnumpy {
+
 /**
  * @brief Element-wise addition of two arrays with broadcasting.
  *
@@ -273,3 +275,5 @@ NPUArray Remainder(const NPUArray& x1, const NPUArray& x2, std::optional<py::dty
  * @throws std::runtime_error If inputs are not broadcastable, dtype unsupported, or ACL op fails.
  */
 std::pair<NPUArray, NPUArray> Divmod(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> dtype = std::nullopt);
+
+}

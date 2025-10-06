@@ -25,6 +25,7 @@
 #include <fmt/format.h>
 #include <stdexcept>
 
+namespace asnumpy {
 
 /**
  * @brief Element-wise addition using aclnnAdd.
@@ -141,7 +142,9 @@ NPUArray Reciprocal(const NPUArray& x, std::optional<py::dtype> dtype) {
         throw std::runtime_error(msg);
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     return out;
 }
 
@@ -199,7 +202,9 @@ NPUArray Positive(const NPUArray& x, std::optional<py::dtype> dtype) {
         throw std::runtime_error(msg);
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     return out;
 }
 
@@ -987,11 +992,15 @@ std::pair<NPUArray, NPUArray> Divmod(const NPUArray& x1, const NPUArray& x2, std
 
     error = aclnnDivMod(ws_addr, ws_size, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (ws_addr) aclrtFree(ws_addr);
+        if (ws_addr) {
+            aclrtFree(ws_addr);
+        }
         throw std::runtime_error("[arithmetic_operations.cpp](Divmod) aclnnDivMod error = "
                                  + std::to_string(error));
     }
-    if (ws_addr) aclrtFree(ws_addr);
+    if (ws_addr) {
+        aclrtFree(ws_addr);
+    }
 
     // 4. 余数 r = x1 - q * x2
     NPUArray qx2 = Multiply(quotient, x2, out_dtype);
@@ -1005,4 +1014,6 @@ std::pair<NPUArray, NPUArray> Divmod(const NPUArray& x1, const NPUArray& x2, std
     }
 
     return {quotient, remainder};
+}
+
 }
