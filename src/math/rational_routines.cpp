@@ -1,4 +1,5 @@
 #include <asnumpy/math/rational_routines.hpp>
+#include <asnumpy/utils/npu_array.hpp>
 
 #include <acl/acl.h>
 #include <aclnn/aclnn_base.h>
@@ -11,38 +12,20 @@
 #include <fmt/format.h>
 #include <stdexcept>
 
-/**
- * @brief Compute element-wise least common multiple (LCM).
- * 
- * Equivalent to numpy.lcm(x1, x2), returns the smallest positive integer divisible by both x1 and x2.
- * 
- * @param x1 NPUArray, input array (integer type)
- * @param x2 NPUArray, input array (integer type)
- * @return NPUArray Element-wise LCM of x1 and x2
- */
-/**
- * @brief Compute element-wise least common multiple (LCM).
- * 
- * Equivalent to numpy.lcm(x1, x2), returns the smallest positive integer divisible by both x1 and x2.
- * Implemented using the relationship: LCM(a, b) = |a * b| / GCD(a, b)
- * 
- * @param x1 NPUArray, input array (integer type)
- * @param x2 NPUArray, input array (integer type)
- * @return NPUArray Element-wise LCM of x1 and x2
- */
-NPUArray Lcm(const NPUArray& x1, const NPUArray& x2) {
-    // 检查输入形状是否匹配
-    if (x1.shape != x2.shape) {
-        throw std::invalid_argument("Lcm: x1 and x2 must have the same shape");
-    }
+namespace asnumpy {
 
+NPUArray Lcm(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> dtype) {
     // 初始化中间结果和最终结果数组
-    auto shape = x1.shape;
-    auto dtype = x1.dtype;
+    auto out_dtype = x1.dtype;
     auto acl_dtype = x1.aclDtype;
+    auto shape = GetBroadcastShape(x1, x2);
+    if (dtype != std::nullopt) {
+        out_dtype = *dtype;
+    }
+    auto out = NPUArray(shape, out_dtype);
 
     // 步骤1: 计算x1和x2的乘积 (a * b)
-    NPUArray product(shape, dtype);
+    NPUArray product(shape, out_dtype);
     uint64_t mul_workspace_size = 0;
     aclOpExecutor* mul_executor = nullptr;
     auto error = aclnnMulGetWorkspaceSize(
@@ -69,7 +52,7 @@ NPUArray Lcm(const NPUArray& x1, const NPUArray& x2) {
     }
 
     // 步骤2: 计算x1和x2的绝对值乘积 (|a * b|)
-    NPUArray abs_product(shape, dtype);
+    NPUArray abs_product(shape, out_dtype);
     uint64_t abs_workspace_size = 0;
     aclOpExecutor* abs_executor = nullptr;
     error = aclnnAbsGetWorkspaceSize(
@@ -101,7 +84,7 @@ NPUArray Lcm(const NPUArray& x1, const NPUArray& x2) {
     NPUArray gcd_result = Gcd(x1, x2);  // 复用已实现的Gcd函数
 
     // 步骤4: 计算LCM = |a*b| / GCD(a,b)
-    NPUArray result(shape, dtype);
+    NPUArray result(shape, out_dtype);
     uint64_t div_workspace_size = 0;
     aclOpExecutor* div_executor = nullptr;
     error = aclnnDivGetWorkspaceSize(
@@ -143,25 +126,15 @@ NPUArray Lcm(const NPUArray& x1, const NPUArray& x2) {
 }
     
 
-/**
- * @brief Compute element-wise greatest common divisor (GCD).
- * 
- * Equivalent to numpy.gcd(x1, x2), returns the largest positive integer dividing both x1 and x2.
- * 
- * @param x1 NPUArray, input array (integer type)
- * @param x2 NPUArray, input array (integer type)
- * @return NPUArray Element-wise GCD of x1 and x2
- */
-NPUArray Gcd(const NPUArray& x1, const NPUArray& x2) {
-    // 检查输入形状是否匹配
-    if (x1.shape != x2.shape) {
-        throw std::invalid_argument("Gcd: x1 and x2 must have the same shape");
+NPUArray Gcd(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> dtype) {
+    // 初始化结果数组（广播输出形状）
+    auto out_dtype = x1.dtype;
+    auto shape = GetBroadcastShape(x1, x2);
+    auto out = NPUArray(shape, out_dtype);
+    if (dtype != std::nullopt) {
+        out_dtype = *dtype;
     }
-
-    // 初始化结果数组（形状和数据类型与输入一致）
-    auto shape = x1.shape;
-    auto dtype = x1.dtype;
-    NPUArray result(shape, dtype);
+    NPUArray result(shape, out_dtype);
 
     // 获取工作空间大小
     uint64_t workspace_size = 0;
@@ -204,4 +177,6 @@ NPUArray Gcd(const NPUArray& x1, const NPUArray& x2) {
     }
 
     return result;
+}
+
 }
