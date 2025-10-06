@@ -15,6 +15,6 @@ namespace asnumpy {
  * @return NPUArray Output array with sinc applied element-wise.
  * @throws std::runtime_error If the ACL operator or memory allocation fails.
  */
-NPUArray sinc(const NPUArray& x, std::optional<py::dtype> dtype = std::nullopt);
+NPUArray Sinc(const NPUArray& x, std::optional<py::dtype> dtype = std::nullopt);
 
 }

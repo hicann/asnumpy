@@ -10,8 +10,7 @@ namespace asnumpy {
 /**
  * @brief Element-wise sinc function using aclnnSinc.
  */
-NPUArray sinc(const NPUArray& x, std::optional<py::dtype> dtype) {
-    auto shape = x.shape;
+NPUArray Sinc(const NPUArray& x, std::optional<py::dtype> dtype) {
     py::dtype py_dtype = x.dtype;
     aclDataType in_dtype = NPUArray::GetACLDataType(py_dtype);
     aclDataType out_dtype = in_dtype;
@@ -21,7 +20,7 @@ NPUArray sinc(const NPUArray& x, std::optional<py::dtype> dtype) {
         out_py_dtype = *dtype;
         out_dtype = NPUArray::GetACLDataType(out_py_dtype);
     }
-    NPUArray out(shape, out_py_dtype);
+    NPUArray out(x.shape, out_py_dtype);
 
     uint64_t workspaceSize = 0;
     aclOpExecutor* executor = nullptr;
