@@ -7,20 +7,22 @@
 
 #include <utility>
 
-NPUArray Exp(const NPUArray& x, py::dtype dtype);
+namespace asnumpy {
+    NPUArray Exp(const NPUArray& x);
 
-NPUArray Expm1(const NPUArray& x, py::dtype dtype);
+    NPUArray Expm1(const NPUArray& x);
 
-NPUArray Exp2(const NPUArray& x, py::dtype dtype);
+    NPUArray Exp2(const NPUArray& x);
 
-NPUArray Log(const NPUArray& x, py::dtype dtype);
+    NPUArray Log(const NPUArray& x);
 
-NPUArray Log10(const NPUArray& x, py::dtype dtype);
+    NPUArray Log10(const NPUArray& x);
 
-NPUArray Log2(const NPUArray& x, py::dtype dtype);
+    NPUArray Log2(const NPUArray& x);
 
-NPUArray Log1p(const NPUArray& x, py::dtype dtype);
+    NPUArray Log1p(const NPUArray& x);
 
-NPUArray Logaddexp(const NPUArray& x1, const NPUArray& x2, py::dtype dtype);
+    NPUArray Logaddexp(const NPUArray& x1, const NPUArray& x2);
 
-NPUArray Logaddexp2(const NPUArray& x1, const NPUArray& x2, py::dtype dtype);
+    NPUArray Logaddexp2(const NPUArray& x1, const NPUArray& x2);
+}
