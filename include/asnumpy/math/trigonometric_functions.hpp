@@ -1,121 +1,117 @@
 #pragma once
 
-#include "asnumpy/utils/npu_array.hpp"
+#include <asnumpy/utils/npu_array.hpp>
+
 #include <acl/acl.h>
 #include <aclnn/aclnn_base.h>
 
 #include <utility>
 
+namespace asnumpy {
+    /**
+    * @brief Compute the sine of each element in the input array.
+    * 
+    * Calculates element-wise sine values on NPU by calling aclnnSin.
+    * 
+    * @param x Input array.
+    * @return NPUArray Array with element-wise sine values.
+    * @throws std::runtime_error If ACL operation fails.
+    */
+    NPUArray Sin(const NPUArray& x);
 
-/**
- * @brief Compute the sine of each element in the input array.
- * 
- * Calculates element-wise sine values on NPU by calling aclnnSin.
- * 
- * @param x Input array.
- * @param dtype Target numpy dtype for the output array.
- * @return NPUArray Array with element-wise sine values.
- * @throws std::runtime_error If ACL operation fails.
- */
-NPUArray sin(const NPUArray& x, py::dtype dtype);
+    /**
+    * @brief Compute the cosine of each element in the input array.
+    * 
+    * Calculates element-wise cosine values on NPU by calling aclnnCos.
+    * 
+    * @param x Input array.
+    * @return NPUArray Array with element-wise cosine values.
+    * @throws std::runtime_error If ACL operation fails.
+    */
+    NPUArray Cos(const NPUArray& x);
 
-/**
- * @brief Compute the cosine of each element in the input array.
- * 
- * Calculates element-wise cosine values on NPU by calling aclnnCos.
- * 
- * @param x Input array.
- * @param dtype Target numpy dtype for the output array.
- * @return NPUArray Array with element-wise cosine values.
- * @throws std::runtime_error If ACL operation fails.
- */
-NPUArray cos(const NPUArray& x, py::dtype dtype);
+    /**
+    * @brief Compute the tangent of each element in the input array.
+    * 
+    * Calculates element-wise tangent values on NPU by calling aclnnTan.
+    * 
+    * @param x Input array.
+    * @return NPUArray Array with element-wise tangent values.
+    * @throws std::runtime_error If ACL operation fails.
+    */
+    NPUArray Tan(const NPUArray& x);
 
-/**
- * @brief Compute the tangent of each element in the input array.
- * 
- * Calculates element-wise tangent values on NPU by calling aclnnTan.
- * 
- * @param x Input array.
- * @param dtype Target numpy dtype for the output array.
- * @return NPUArray Array with element-wise tangent values.
- * @throws std::runtime_error If ACL operation fails.
- */
-NPUArray tan(const NPUArray& x, py::dtype dtype);
+    /**
+    * @brief Compute the inverse sine (arcsin) of each element in the input array.
+    *
+    * Calculates element-wise arcsin values on NPU by calling aclnnAsin.
+    *
+    * @param x Input array.
+    * @return NPUArray Array with element-wise arcsin values.
+    * @throws std::runtime_error If ACL operation fails.
+    */
+    NPUArray Arcsin(const NPUArray& x);
 
-/**
- * @brief Compute the inverse sine (arcsin) of each element in the input array.
- *
- * Calculates element-wise arcsin values on NPU by calling aclnnAsin.
- *
- * @param x Input array.
- * @param dtype Target numpy dtype for the output array.
- * @return NPUArray Array with element-wise arcsin values.
- * @throws std::runtime_error If ACL operation fails.
- */
-NPUArray arcsin(const NPUArray& x, py::dtype dtype);
+    /**
+    * @brief Compute the inverse cosine (arccos) of each element in the input array.
+    *
+    * Calculates element-wise arccos values on NPU by calling aclnnAcos.
+    *
+    * @param x Input array.
+    * @return NPUArray Array with element-wise arccos values.
+    * @throws std::runtime_error If ACL operation fails.
+    */
+    NPUArray Arccos(const NPUArray& x);
 
-/**
- * @brief Compute the inverse cosine (arccos) of each element in the input array.
- *
- * Calculates element-wise arccos values on NPU by calling aclnnAcos.
- *
- * @param x Input array.
- * @param dtype Target numpy dtype for the output array.
- * @return NPUArray Array with element-wise arccos values.
- * @throws std::runtime_error If ACL operation fails.
- */
-NPUArray arccos(const NPUArray& x, py::dtype dtype);
+    /**
+    * @brief Compute the element-wise arc tangent of input array.
+    * 
+    * Applies the inverse tangent function to each element of the input array.
+    * 
+    * @param x Input NPUArray.
+    * @return NPUArray Array where each element is the arctangent of the corresponding input element.
+    * @throws std::runtime_error If ACL operation returns an error.
+    */
+    NPUArray Arctan(const NPUArray& x);
 
-/**
- * @brief Compute the element-wise arc tangent of input array.
- * 
- * Applies the inverse tangent function to each element of the input array.
- * 
- * @param x Input NPUArray.
- * @param dtype Target numpy dtype for the output array.
- * @return NPUArray Array where each element is the arctangent of the corresponding input element.
- * @throws std::runtime_error If ACL operation returns an error.
- */
-NPUArray Arctan(const NPUArray& x, py::dtype dtype);
+    /**
+    * @brief Compute the hypotenuse of two arrays element-wise.
+    * 
+    * This function calculates the hypotenuse for each pair of elements from the input arrays `a` and `b`
+    * using the formula: hypot(a, b) = sqrt(a^2 + b^2). It supports broadcasting of input shapes.
+    * 
+    * @param a NPUArray, first input array
+    * @param b NPUArray, second input array
+    * @return NPUArray Resulting array containing the hypotenuse values
+    * @throws std::invalid_argument If input shapes are not broadcastable
+    * @throws std::runtime_error If ACL operations encounter errors
+    */
+    NPUArray Hypot(const NPUArray& a, const NPUArray& b);
 
-/**
- * @brief Compute the hypotenuse of two arrays element-wise.
- * 
- * This function calculates the hypotenuse for each pair of elements from the input arrays `a` and `b`
- * using the formula: hypot(a, b) = sqrt(a^2 + b^2). It supports broadcasting of input shapes.
- * 
- * @param a NPUArray, first input array
- * @param b NPUArray, second input array
- * @return NPUArray Resulting array containing the hypotenuse values
- * @throws std::invalid_argument If input shapes are not broadcastable
- * @throws std::runtime_error If ACL operations encounter errors
- */
-NPUArray Hypot(const NPUArray& a, const NPUArray& b);
+    /**
+    * @brief Compute the element-wise arc tangent of y/x considering the quadrant.
+    * 
+    * This function computes the angle (in radians) between the positive x-axis and the point (x, y)
+    * for each pair of elements from the input arrays `y` and `x`. It uses the aclnnAtan2 operator
+    * to handle the quadrant correctly.
+    * 
+    * @param y NPUArray, input array representing the y-coordinates
+    * @param x NPUArray, input array representing the x-coordinates
+    * @return NPUArray Array where each element is the angle in radians corresponding to atan2(y, x)
+    * @throws std::invalid_argument If input shapes are not broadcastable
+    * @throws std::runtime_error If ACL operations encounter errors
+    */
+    NPUArray Arctan2(const NPUArray& y, const NPUArray& x);
 
-/**
- * @brief Compute the element-wise arc tangent of y/x considering the quadrant.
- * 
- * This function computes the angle (in radians) between the positive x-axis and the point (x, y)
- * for each pair of elements from the input arrays `y` and `x`. It uses the aclnnAtan2 operator
- * to handle the quadrant correctly.
- * 
- * @param y NPUArray, input array representing the y-coordinates
- * @param x NPUArray, input array representing the x-coordinates
- * @return NPUArray Array where each element is the angle in radians corresponding to atan2(y, x)
- * @throws std::invalid_argument If input shapes are not broadcastable
- * @throws std::runtime_error If ACL operations encounter errors
- */
-NPUArray Arctan2(const NPUArray& y, const NPUArray& x);
-
-/**
- * @brief Convert angles from degrees to radians.
- * 
- * This function converts each element in the input array from degrees to radians
- * using the formula: radians = degrees * (π / 180).
- * 
- * @param x NPUArray, input array with angles in degrees
- * @return NPUArray Array with angles converted to radians
- * @throws std::runtime_error If ACL operations encounter errors
- */
-NPUArray Radians(const NPUArray& x);
+    /**
+    * @brief Convert angles from degrees to radians.
+    * 
+    * This function converts each element in the input array from degrees to radians
+    * using the formula: radians = degrees * (π / 180).
+    * 
+    * @param x NPUArray, input array with angles in degrees
+    * @return NPUArray Array with angles converted to radians
+    * @throws std::runtime_error If ACL operations encounter errors
+    */
+    NPUArray Radians(const NPUArray& x);
+}
