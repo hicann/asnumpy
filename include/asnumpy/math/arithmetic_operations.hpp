@@ -6,6 +6,8 @@
 
 #include <utility>
 
+namespace asnumpy {
+
 /**
  * @brief Element-wise addition of two arrays with broadcasting.
  *
@@ -14,11 +16,11 @@
  *
  * @param x1 First input array.
  * @param x2 Second input array.
- * @param dtype Target dtype for the output array.
+ * @param dtype (optional) Target dtype for the output array.
  * @return NPUArray Output array with element-wise sums.
  * @throws std::runtime_error If shapes are not broadcastable, dtype unsupported, or ACL op fails.
  */
-NPUArray Add(const NPUArray& x1, const NPUArray& x2, py::dtype dtype);
+NPUArray Add(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> dtype = std::nullopt);
 
 /**
  * @brief Compute the reciprocal (1/x) of each element in the input array.
@@ -26,11 +28,11 @@ NPUArray Add(const NPUArray& x1, const NPUArray& x2, py::dtype dtype);
  * Performs element-wise reciprocal operation using aclnnReciprocal.
  *
  * @param x Input array.
- * @param dtype Target dtype for the output array.
+ * @param dtype (optional) Target dtype for the output array.
  * @return NPUArray Array with element-wise reciprocals.
  * @throws std::runtime_error If dtype unsupported or ACL operation fails.
  */
-NPUArray Reciprocal(const NPUArray& x, py::dtype dtype);
+NPUArray Reciprocal(const NPUArray& x, std::optional<py::dtype> dtype = std::nullopt);
 
 /**
  * @brief Unary positive operator: return a copy or cast of the input array.
@@ -39,11 +41,11 @@ NPUArray Reciprocal(const NPUArray& x, py::dtype dtype);
  * Otherwise, performs dtype casting on NPU using aclnnCast.
  *
  * @param x Input array.
- * @param dtype Target dtype for the output array.
+ * @param dtype (optional) Target dtype for the output array.
  * @return NPUArray Copy of x or casted array.
  * @throws std::runtime_error If ACL operation or memory allocation fails.
  */
-NPUArray Positive(const NPUArray& x, py::dtype dtype);
+NPUArray Positive(const NPUArray& x, std::optional<py::dtype> dtype = std::nullopt);
 
 /**
  * @brief Unary negative operator: element-wise negation (-x).
@@ -51,11 +53,11 @@ NPUArray Positive(const NPUArray& x, py::dtype dtype);
  * Computes the element-wise negation of the input array using aclnnNeg.
  *
  * @param x Input array.
- * @param dtype Target dtype for the output array.
+ * @param dtype (optional) Target dtype for the output array.
  * @return NPUArray Array with element-wise negated values.
  * @throws std::runtime_error If ACL operation or memory allocation fails.
  */
-NPUArray Negative(const NPUArray& x, py::dtype dtype);
+NPUArray Negative(const NPUArray& x, std::optional<py::dtype> dtype = std::nullopt);
 
 /**
  * @brief Element-wise multiplication of two arrays with broadcasting.
@@ -65,11 +67,11 @@ NPUArray Negative(const NPUArray& x, py::dtype dtype);
  *
  * @param x1 First input array.
  * @param x2 Second input array.
- * @param dtype Target dtype for the output array.
+ * @param dtype (optional) Target dtype for the output array.
  * @return NPUArray Array with element-wise products.
  * @throws std::runtime_error If shapes are not broadcastable, dtype unsupported, or ACL op fails.
  */
-NPUArray Multiply(const NPUArray& x1, const NPUArray& x2, py::dtype dtype);
+NPUArray Multiply(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> dtype = std::nullopt);
 
 /**
  * @brief Element-wise division of two arrays with broadcasting.
@@ -79,11 +81,11 @@ NPUArray Multiply(const NPUArray& x1, const NPUArray& x2, py::dtype dtype);
  *
  * @param x1 Dividend array.
  * @param x2 Divisor array.
- * @param dtype Target dtype for the output array.
+ * @param dtype (optional) Target dtype for the output array.
  * @return NPUArray Array with element-wise quotients.
  * @throws std::runtime_error If shapes are not broadcastable, dtype unsupported, or ACL op fails.
  */
-NPUArray Divide(const NPUArray& x1, const NPUArray& x2, py::dtype dtype);
+NPUArray Divide(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> dtype = std::nullopt);
 
 /**
  * @brief Element-wise true division of two arrays.
@@ -92,11 +94,11 @@ NPUArray Divide(const NPUArray& x1, const NPUArray& x2, py::dtype dtype);
  *
  * @param x1 Dividend array.
  * @param x2 Divisor array.
- * @param dtype Target dtype for the output array.
+ * @param dtype (optional) Target dtype for the output array.
  * @return NPUArray Array with element-wise quotients.
  * @throws std::runtime_error If Divide fails.
  */
-NPUArray TrueDivide(const NPUArray& x1, const NPUArray& x2, py::dtype dtype);
+NPUArray TrueDivide(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> dtype = std::nullopt);
 
 /**
  * @brief Element-wise subtraction of two arrays with broadcasting.
@@ -106,11 +108,11 @@ NPUArray TrueDivide(const NPUArray& x1, const NPUArray& x2, py::dtype dtype);
  *
  * @param x1 First input array.
  * @param x2 Second input array.
- * @param dtype Target dtype for the output array.
+ * @param dtype (optional) Target dtype for the output array.
  * @return NPUArray Array with element-wise differences.
  * @throws std::runtime_error If shapes are not broadcastable, dtype unsupported, or ACL op fails.
  */
-NPUArray Subtract(const NPUArray& x1, const NPUArray& x2, py::dtype dtype);
+NPUArray Subtract(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> dtype = std::nullopt);
 
 /**
  * @brief Element-wise floor division of two arrays with broadcasting.
@@ -120,11 +122,11 @@ NPUArray Subtract(const NPUArray& x1, const NPUArray& x2, py::dtype dtype);
  *
  * @param x1 Dividend array.
  * @param x2 Divisor array.
- * @param dtype Target dtype for the output array.
+ * @param dtype (optional) Target dtype for the output array.
  * @return NPUArray Array with element-wise floored quotients.
  * @throws std::runtime_error If shapes are not broadcastable, dtype unsupported, or ACL op fails.
  */
-NPUArray FloorDivide(const NPUArray& x1, const NPUArray& x2, py::dtype dtype);
+NPUArray FloorDivide(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> dtype = std::nullopt);
 
 /**
  * @brief Element-wise power of two arrays with broadcasting.
@@ -133,11 +135,11 @@ NPUArray FloorDivide(const NPUArray& x1, const NPUArray& x2, py::dtype dtype);
  *
  * @param x1 Base array.
  * @param x2 Exponent array.
- * @param dtype Target dtype for the output array.
+ * @param dtype (optional) Target dtype for the output array.
  * @return NPUArray Array with element-wise powers.
  * @throws std::runtime_error If shapes are not broadcastable, dtype unsupported, or ACL op fails.
  */
-NPUArray Power(const NPUArray& x1, const NPUArray& x2, py::dtype dtype);
+NPUArray Power(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> dtype = std::nullopt);
 
 /**
  * @brief Scalar ** Tensor power.
@@ -146,11 +148,11 @@ NPUArray Power(const NPUArray& x1, const NPUArray& x2, py::dtype dtype);
  *
  * @param x1 Scalar base (Python object convertible to number).
  * @param x2 Exponent array.
- * @param dtype Target dtype for the output array.
+ * @param dtype (optional) Target dtype for the output array.
  * @return NPUArray Array with element-wise powers.
  * @throws std::runtime_error If conversion fails or ACL op fails.
  */
-NPUArray Power(const py::object& x1, const NPUArray& x2, py::dtype dtype);
+NPUArray Power(const py::object& x1, const NPUArray& x2, std::optional<py::dtype> dtype = std::nullopt);
 
 /**
  * @brief Tensor ** Scalar power.
@@ -159,11 +161,11 @@ NPUArray Power(const py::object& x1, const NPUArray& x2, py::dtype dtype);
  *
  * @param x1 Base array.
  * @param x2 Scalar exponent (Python object convertible to number).
- * @param dtype Target dtype for the output array.
+ * @param dtype (optional) Target dtype for the output array.
  * @return NPUArray Array with element-wise powers.
  * @throws std::runtime_error If conversion fails or ACL op fails.
  */
-NPUArray Power(const NPUArray& x1, const py::object& x2, py::dtype dtype);
+NPUArray Power(const NPUArray& x1, const py::object& x2, std::optional<py::dtype> dtype = std::nullopt);
 
 /**
  * @brief Compute the element-wise floating-point power x1 ** x2.
@@ -174,11 +176,11 @@ NPUArray Power(const NPUArray& x1, const py::object& x2, py::dtype dtype);
  *
  * @param x1 Base array.
  * @param x2 Exponent array.
- * @param dtype Target numpy dtype for the output array (must be float or double).
+ * @param dtype (optional) Target numpy dtype for the output array (must be float or double).
  * @return NPUArray Array of element-wise powers.
  * @throws std::runtime_error If inputs are not broadcastable, dtype is unsupported, or ACL operation fails.
  */
-NPUArray FloatPower(const NPUArray& x1, const NPUArray& x2, py::dtype dtype);
+NPUArray FloatPower(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> dtype = std::nullopt);
 
 /**
  * @brief Compute the element-wise floating-point remainder (fmod) of two arrays.
@@ -192,11 +194,11 @@ NPUArray FloatPower(const NPUArray& x1, const NPUArray& x2, py::dtype dtype);
  *
  * @param x1 Dividend array.
  * @param x2 Divisor array.
- * @param dtype Target numpy dtype for the output array (must be float or double).
+ * @param dtype (optional) Target numpy dtype for the output array (must be float or double).
  * @return NPUArray Array with element-wise fmod results.
  * @throws std::runtime_error If shapes are not broadcastable, dtype is unsupported, or ACL operation fails.
  */
-NPUArray Fmod(const NPUArray& x1, const NPUArray& x2, py::dtype dtype);
+NPUArray Fmod(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> dtype = std::nullopt);
 
 /**
  * @brief Compute the element-wise remainder (mod) of two arrays.
@@ -211,11 +213,11 @@ NPUArray Fmod(const NPUArray& x1, const NPUArray& x2, py::dtype dtype);
  *
  * @param x1 Dividend array.
  * @param x2 Divisor array.
- * @param dtype Target numpy dtype for the output array (must be float or double).
+ * @param dtype (optional) Target numpy dtype for the output array (must be float or double).
  * @return NPUArray Array with element-wise remainder results.
  * @throws std::runtime_error If shapes are not broadcastable, dtype is unsupported, or ACL operation fails.
  */
-NPUArray Mod(const NPUArray& x1, const NPUArray& x2, py::dtype dtype);
+NPUArray Mod(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> dtype = std::nullopt);
 
 /**
  * @brief Split input into fractional and integral parts element-wise.
@@ -249,27 +251,29 @@ std::pair<NPUArray, NPUArray> Modf(const NPUArray& x);
  *
  * @param x1 Dividend array.
  * @param x2 Divisor array.
- * @param dtype Target numpy dtype for the output array (must be float or double).
+ * @param dtype (optional) Target numpy dtype for the output array (must be float or double).
  * @return NPUArray Array with element-wise remainder results.
  * @throws std::runtime_error If shapes are not broadcastable, dtype is unsupported, or ACL operation fails.
  */
-NPUArray Remainder(const NPUArray& x1, const NPUArray& x2, py::dtype dtype);
+NPUArray Remainder(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> dtype = std::nullopt);
 
 /**
  * @brief Compute element-wise quotient and remainder of division.
  *
  * For each pair (x1, x2):
- *     quotient  = trunc(x1 / x2)
+ *     quotient  = floor(x1 / x2)
  *     remainder = x1 - quotient * x2
  *
  * Returns a pair of arrays (quotient, remainder).
  * Supports broadcasting of input shapes according to standard array broadcasting rules.
- * Uses NPU operator aclnnDivMod with mode=0 (quotient) and mode=1 (remainder).
+ * Uses aclnnDivMod with mode=2 (floor) for quotient, and computes remainder manually.
  *
  * @param x1 Dividend array.
  * @param x2 Divisor array.
- * @param dtype Target dtype for the output arrays (supports int32, float, double).
+ * @param dtype (optional) Target dtype for the output arrays (supports int32, float, double).
  * @return std::pair<NPUArray, NPUArray> Pair (quotient, remainder).
  * @throws std::runtime_error If inputs are not broadcastable, dtype unsupported, or ACL op fails.
  */
-std::pair<NPUArray, NPUArray> Divmod(const NPUArray& x1, const NPUArray& x2, py::dtype dtype);
+std::pair<NPUArray, NPUArray> Divmod(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> dtype = std::nullopt);
+
+}
