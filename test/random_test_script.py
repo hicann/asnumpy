@@ -1,6 +1,7 @@
 import numpy as np
-import asnumpy as ap
 from scipy import stats
+import asnumpy as ap
+
 
 def main():
     np.random.seed(123)
