@@ -14,6 +14,7 @@
 
 
 namespace py = pybind11;
+using namespace asnumpy;
 
 void bind_trigonometric_functions(py::module_& math);
 void bind_hyperbolic_functions(py::module_& math);
