@@ -1,5 +1,6 @@
 from .asnumpy_core import *
 from .asnumpy_core.math import * 
+from .asnumpy_core.random import *
 from .asnumpy_core.cann import * 
 from .asnumpy_core import linalg  
 # linalg模块内部分需要ap.linalg.xxx调用，部分ap.yyy调用，
@@ -89,7 +90,21 @@ __all__ = [
     "maximum",
     "minimum",
     "fmax",
-    "fmin"
+    "fmin",
+    "pareto",
+    "rayleigh",
+    "normal",
+    "uniform",
+    "standard_normal",
+    "standard_cauchy",
+    "weibull",
+    "binomial",
+    "exponential",
+    "geometric",
+    "gumbel",
+    "laplace",
+    "logistic",
+    "lognormal"
 ]
 
 
