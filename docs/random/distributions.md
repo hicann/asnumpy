@@ -14,8 +14,7 @@
 [Gumbel](#gumbel) ·  
 [Laplace](#laplace) ·  
 [Logistic](#logistic) ·  
-[Lognormal](#lognormal) ·  
-[Multinomial](#multinomial)
+[Lognormal](#lognormal) 
 
 1. <mark> **<a id="generator_pareto"></a>Generator_Pareto** </mark>  
 [返回顶部](#distributions)  
@@ -161,14 +160,3 @@
   NPUArray  
 - **功能：**  
   从具有指定均值、标准差和数组形状的对数正态分布中抽取随机样本。
-
-15. <mark> **<a id="multinomial"></a>Multinomial** </mark>  
-[返回顶部](#distributions)  
-- **参数：**  
-  n：int64_t，总试验次数（满足 n ≥ 0）  
-  pvals：NPUArray，类别概率（非负，沿最后一维和为 1；若不精确为 1，通常会归一化）  
-  size：std::vector<int64_t>，批量形状  
-- **返回类型：**  
-  NPUArray  
-- **功能：**  
-  从多项式分布中抽取随机样本。
