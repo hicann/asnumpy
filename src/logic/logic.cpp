@@ -62,19 +62,25 @@ NPUArray All(const NPUArray& x) {
 
     error = aclnnAll(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         aclDestroyIntArray(aclDim);
         throw std::runtime_error("[logic.cpp](All) aclnnAll failed, error=" + std::to_string(error));
     }
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         aclDestroyIntArray(aclDim);
         throw std::runtime_error("[logic.cpp](All) sync device failed, error=" + std::to_string(error));
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     aclDestroyIntArray(aclDim);
 
     return result;
@@ -124,12 +130,16 @@ NPUArray All(const NPUArray& x, const std::vector<int64_t>& dim, bool keepdims) 
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         aclDestroyIntArray(aclDim);
         throw std::runtime_error("[logic.cpp](All) sync device failed, error=" + std::to_string(error));
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     aclDestroyIntArray(aclDim);
 
     return result;
@@ -172,19 +182,25 @@ NPUArray Any(const NPUArray& x) {
 
     error = aclnnAny(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         aclDestroyIntArray(aclDim);
         throw std::runtime_error("[logic.cpp](Any) aclnnAny failed, error=" + std::to_string(error));
     }
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         aclDestroyIntArray(aclDim);
         throw std::runtime_error("[logic.cpp](Any) sync device failed, error=" + std::to_string(error));
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     aclDestroyIntArray(aclDim);
 
     return result;
@@ -227,19 +243,25 @@ NPUArray Any(const NPUArray& x, const std::vector<int64_t>& dim, bool keepdims) 
 
     error = aclnnAny(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         aclDestroyIntArray(aclDim);
         throw std::runtime_error("[logic.cpp](Any) aclnnAny failed, error=" + std::to_string(error));
     }
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         aclDestroyIntArray(aclDim);
         throw std::runtime_error("[logic.cpp](Any) sync device failed, error=" + std::to_string(error));
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     aclDestroyIntArray(aclDim);
 
     return result;
@@ -279,7 +301,9 @@ NPUArray IsFinite(const NPUArray& x) {
     // 执行计算
     error = aclnnIsFinite(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         throw std::runtime_error(fmt::format(
             "[logic.cpp](IsFinite) computation failed, error={}", error));
     }
@@ -287,12 +311,16 @@ NPUArray IsFinite(const NPUArray& x) {
     // 同步设备
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         throw std::runtime_error(fmt::format(
             "[logic.cpp](IsFinite) sync device failed, error={}", error));
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     return result;
 }
 
@@ -325,17 +353,25 @@ NPUArray IsInf(const NPUArray& x) {
 
     error = aclnnIsInf(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         throw std::runtime_error(fmt::format("[logic.cpp](IsInf) computation failed, error={}", error));
     }
+{
 
+}
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         throw std::runtime_error(fmt::format("[logic.cpp](IsInf) sync device failed, error={}", error));
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     return result;
 }
 
@@ -365,7 +401,9 @@ NPUArray IsNegInf(const NPUArray& x) {
     // 创建执行流
     error = aclrtCreateStream(&stream);
     if (error != ACL_SUCCESS || stream == nullptr) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         throw std::runtime_error(fmt::format("[logic.cpp](IsNegInf) create stream failed, error={}", error));
     }
 
@@ -373,7 +411,9 @@ NPUArray IsNegInf(const NPUArray& x) {
     error = aclnnIsNegInf(workspaceAddr, workspaceSize, executor, stream);
     if (error != ACL_SUCCESS) {
         aclrtDestroyStream(stream);
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         throw std::runtime_error(fmt::format("[logic.cpp](IsNegInf) computation failed, error={}", error));
     }
 
@@ -381,14 +421,19 @@ NPUArray IsNegInf(const NPUArray& x) {
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
         aclrtDestroyStream(stream);
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         throw std::runtime_error(fmt::format("[logic.cpp](IsNegInf) sync device failed, error={}", error));
     }
 
     // 释放资源
     aclrtDestroyStream(stream);
-    if (workspaceAddr) aclrtFree(workspaceAddr);
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }{
 
+    }
     return result;
 }
 
@@ -418,7 +463,9 @@ NPUArray IsPosInf(const NPUArray& x) {
     // 创建执行流
     error = aclrtCreateStream(&stream);
     if (error != ACL_SUCCESS || stream == nullptr) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         throw std::runtime_error(fmt::format("[logic.cpp](IsPosInf) create stream failed, error={}", error));
     }
 
@@ -426,7 +473,9 @@ NPUArray IsPosInf(const NPUArray& x) {
     error = aclnnIsPosInf(workspaceAddr, workspaceSize, executor, stream);
     if (error != ACL_SUCCESS) {
         aclrtDestroyStream(stream);
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         throw std::runtime_error(fmt::format("[logic.cpp](IsPosInf) computation failed, error={}", error));
     }
 
@@ -434,14 +483,17 @@ NPUArray IsPosInf(const NPUArray& x) {
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
         aclrtDestroyStream(stream);
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         throw std::runtime_error(fmt::format("[logic.cpp](IsPosInf) sync device failed, error={}", error));
     }
 
     // 释放资源
     aclrtDestroyStream(stream);
-    if (workspaceAddr) aclrtFree(workspaceAddr);
-
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     return result;
 }
 
@@ -475,18 +527,23 @@ NPUArray LogicalAnd(const NPUArray& x, const NPUArray& y) {
 
     error = aclnnLogicalAnd(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         throw std::runtime_error(fmt::format("[logic.cpp](LogicalAnd) computation failed, error={}", error));
     }
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         throw std::runtime_error(fmt::format("[logic.cpp](LogicalAnd) sync device failed, error={}", error));
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
-
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     return result;
 }
 
@@ -520,18 +577,23 @@ NPUArray LogicalOr(const NPUArray& x, const NPUArray& y) {
 
     error = aclnnLogicalOr(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         throw std::runtime_error(fmt::format("[logic.cpp](LogicalOr) computation failed, error={}", error));
     }
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         throw std::runtime_error(fmt::format("[logic.cpp](LogicalOr) sync device failed, error={}", error));
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
-
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     return result;
 }
 
@@ -564,18 +626,25 @@ NPUArray LogicalNot(const NPUArray& x) {
 
     error = aclnnLogicalNot(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         throw std::runtime_error(fmt::format("[logic.cpp](LogicalNot) computation failed, error={}", error));
     }
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         throw std::runtime_error(fmt::format("[logic.cpp](LogicalNot) sync device failed, error={}", error));
+    }{
+     }
+
+
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
     }
-
-    if (workspaceAddr) aclrtFree(workspaceAddr);
-
     return result;
 }
 
@@ -609,18 +678,23 @@ NPUArray LogicalXor(const NPUArray& x, const NPUArray& y) {
 
     error = aclnnLogicalXor(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         throw std::runtime_error(fmt::format("[logic.cpp](LogicalXor) computation failed, error={}", error));
     }
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         throw std::runtime_error(fmt::format("[logic.cpp](LogicalXor) sync device failed, error={}", error));
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
-
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     return result;
 }
 
@@ -662,7 +736,9 @@ NPUArray greater(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype
 
     error = aclnnGtTensor(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         std::string error_msg = "[logic.cpp](greater) aclnnGtTensor error = "
                                 + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
@@ -673,7 +749,9 @@ NPUArray greater(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }    
         std::string error_msg = "[logic.cpp](greater) aclrtSynchronizeDevice error = "
                                 + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
@@ -682,7 +760,9 @@ NPUArray greater(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype
         throw std::runtime_error(error_msg);
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     return out;
 }
 
@@ -736,8 +816,12 @@ NPUArray greater(const NPUArray& x1, const py::object& scalar, std::optional<py:
 
     error = aclnnGtScalar(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
-        aclDestroyScalar(acl_scalar);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        {
+            aclDestroyScalar(acl_scalar);
+        }
         std::string error_msg = "[logic.cpp](greater) aclnnGtScalar error = "
                                 + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
@@ -748,8 +832,12 @@ NPUArray greater(const NPUArray& x1, const py::object& scalar, std::optional<py:
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
-        aclDestroyScalar(acl_scalar);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        {
+            aclDestroyScalar(acl_scalar);
+        }
         std::string error_msg = "[logic.cpp](greater) aclrtSynchronizeDevice error = "
                                 + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
@@ -758,8 +846,12 @@ NPUArray greater(const NPUArray& x1, const py::object& scalar, std::optional<py:
         throw std::runtime_error(error_msg);
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
-    aclDestroyScalar(acl_scalar);
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
+    {
+        aclDestroyScalar(acl_scalar);
+    }
     return out;
 }
 
@@ -801,7 +893,9 @@ NPUArray greater_equal(const NPUArray& x1, const NPUArray& x2, std::optional<py:
 
     error = aclnnGeTensor(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         std::string error_msg = "[logic.cpp](greater_equal) aclnnGeTensor error = "
                                 + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
@@ -812,7 +906,9 @@ NPUArray greater_equal(const NPUArray& x1, const NPUArray& x2, std::optional<py:
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         std::string error_msg = "[logic.cpp](greater_equal) aclrtSynchronizeDevice error = "
                                 + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
@@ -821,7 +917,9 @@ NPUArray greater_equal(const NPUArray& x1, const NPUArray& x2, std::optional<py:
         throw std::runtime_error(error_msg);
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     return out;
 }
 
@@ -875,7 +973,9 @@ NPUArray greater_equal(const NPUArray& x1, const py::object& scalar, std::option
 
     error = aclnnGeScalar(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         aclDestroyScalar(acl_scalar);
         std::string error_msg = "[logic.cpp](greater_equal) aclnnGeScalar error = "
                                 + std::to_string(error);
@@ -887,7 +987,9 @@ NPUArray greater_equal(const NPUArray& x1, const py::object& scalar, std::option
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         aclDestroyScalar(acl_scalar);
         std::string error_msg = "[logic.cpp](greater_equal) aclrtSynchronizeDevice error = "
                                 + std::to_string(error);
@@ -897,7 +999,9 @@ NPUArray greater_equal(const NPUArray& x1, const py::object& scalar, std::option
         throw std::runtime_error(error_msg);
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     aclDestroyScalar(acl_scalar);
     return out;
 }
@@ -941,7 +1045,9 @@ NPUArray less(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> d
 
     error = aclnnLtTensor(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         std::string error_msg = "[logic.cpp](less) aclnnLtTensor error = "
                                 + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
@@ -952,7 +1058,9 @@ NPUArray less(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> d
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         std::string error_msg = "[logic.cpp](less) aclrtSynchronizeDevice error = "
                                 + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
@@ -961,7 +1069,9 @@ NPUArray less(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> d
         throw std::runtime_error(error_msg);
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     return out;
 }
 
@@ -1015,7 +1125,9 @@ NPUArray less(const NPUArray& x1, const py::object& scalar, std::optional<py::dt
 
     error = aclnnLtScalar(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         aclDestroyScalar(acl_scalar);
         std::string error_msg = "[logic.cpp](less) aclnnLtScalar error = "
                                 + std::to_string(error);
@@ -1027,7 +1139,9 @@ NPUArray less(const NPUArray& x1, const py::object& scalar, std::optional<py::dt
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         aclDestroyScalar(acl_scalar);
         std::string error_msg = "[logic.cpp](less) aclrtSynchronizeDevice error = "
                                 + std::to_string(error);
@@ -1037,7 +1151,9 @@ NPUArray less(const NPUArray& x1, const py::object& scalar, std::optional<py::dt
         throw std::runtime_error(error_msg);
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     aclDestroyScalar(acl_scalar);
     return out;
 }
@@ -1081,7 +1197,9 @@ NPUArray less_equal(const NPUArray& x1, const NPUArray& x2, std::optional<py::dt
 
     error = aclnnLeTensor(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         std::string error_msg = "[logic.cpp](less_equal) aclnnLeTensor error = "
                                 + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
@@ -1092,7 +1210,9 @@ NPUArray less_equal(const NPUArray& x1, const NPUArray& x2, std::optional<py::dt
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         std::string error_msg = "[logic.cpp](less_equal) aclrtSynchronizeDevice error = "
                                 + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
@@ -1101,7 +1221,9 @@ NPUArray less_equal(const NPUArray& x1, const NPUArray& x2, std::optional<py::dt
         throw std::runtime_error(error_msg);
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     return out;
 }
 
@@ -1155,7 +1277,9 @@ NPUArray less_equal(const NPUArray& x1, const py::object& scalar, std::optional<
 
     error = aclnnLeScalar(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         aclDestroyScalar(acl_scalar);
         std::string error_msg = "[logic.cpp](less_equal) aclnnLeScalar error = "
                                 + std::to_string(error);
@@ -1167,7 +1291,9 @@ NPUArray less_equal(const NPUArray& x1, const py::object& scalar, std::optional<
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         aclDestroyScalar(acl_scalar);
         std::string error_msg = "[logic.cpp](less_equal) aclrtSynchronizeDevice error = "
                                 + std::to_string(error);
@@ -1177,7 +1303,9 @@ NPUArray less_equal(const NPUArray& x1, const py::object& scalar, std::optional<
         throw std::runtime_error(error_msg);
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     aclDestroyScalar(acl_scalar);
     return out;
 }
@@ -1288,7 +1416,9 @@ NPUArray not_equal(const NPUArray& x1, const NPUArray& x2, std::optional<py::dty
 
     error = aclnnNeTensor(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         std::string error_msg = "[logic.cpp](not_equal) aclnnNeTensor error = "
                                 + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
@@ -1299,7 +1429,9 @@ NPUArray not_equal(const NPUArray& x1, const NPUArray& x2, std::optional<py::dty
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         std::string error_msg = "[logic.cpp](not_equal) aclrtSynchronizeDevice error = "
                                 + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
@@ -1308,7 +1440,9 @@ NPUArray not_equal(const NPUArray& x1, const NPUArray& x2, std::optional<py::dty
         throw std::runtime_error(error_msg);
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     return out;
 }
 
@@ -1362,7 +1496,9 @@ NPUArray not_equal(const NPUArray& x1, const py::object& scalar, std::optional<p
 
     error = aclnnNeScalar(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         aclDestroyScalar(acl_scalar);
         std::string error_msg = "[logic.cpp](not_equal) aclnnNeScalar error = "
                                 + std::to_string(error);
@@ -1374,7 +1510,9 @@ NPUArray not_equal(const NPUArray& x1, const py::object& scalar, std::optional<p
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         aclDestroyScalar(acl_scalar);
         std::string error_msg = "[logic.cpp](not_equal) aclrtSynchronizeDevice error = "
                                 + std::to_string(error);
@@ -1384,7 +1522,9 @@ NPUArray not_equal(const NPUArray& x1, const py::object& scalar, std::optional<p
         throw std::runtime_error(error_msg);
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     aclDestroyScalar(acl_scalar);
     return out;
 }
