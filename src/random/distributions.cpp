@@ -2095,14 +2095,18 @@ NPUArray Lognormal(float mean, float sigma, const std::vector<int64_t>& size) {
 
     ret = aclnnInplaceNormal(normal_ws_addr, normal_ws, normal_exec, stream);
     if (ret != ACL_SUCCESS) {
-        if (normal_ws_addr) aclrtFree(normal_ws_addr);
+        if (normal_ws_addr) {
+            aclrtFree(normal_ws_addr);
+        }
         aclrtDestroyStream(stream);
         throw std::runtime_error(fmt::format("Lognormal: normal compute failed, error={}", ret));
     }
 
     ret = aclrtSynchronizeStream(stream);
     if (ret != ACL_SUCCESS) {
-        if (normal_ws_addr) aclrtFree(normal_ws_addr);
+        if (normal_ws_addr) {
+            aclrtFree(normal_ws_addr);
+        }
         aclrtDestroyStream(stream);
         throw std::runtime_error(fmt::format("Lognormal: normal sync failed, error={}", ret));
     }
@@ -2131,14 +2135,18 @@ NPUArray Lognormal(float mean, float sigma, const std::vector<int64_t>& size) {
 
     ret = aclnnExp(exp_ws_addr, exp_ws, exp_exec, stream);
     if (ret != ACL_SUCCESS) {
-        if (exp_ws_addr) aclrtFree(exp_ws_addr);
+        if (exp_ws_addr) {
+            aclrtFree(exp_ws_addr);
+        }
         aclrtDestroyStream(stream);
         throw std::runtime_error(fmt::format("Lognormal: exp compute failed, error={}", ret));
     }
 
     ret = aclrtSynchronizeStream(stream);
     if (ret != ACL_SUCCESS) {
-        if (exp_ws_addr) aclrtFree(exp_ws_addr);
+        if (exp_ws_addr) {
+            aclrtFree(exp_ws_addr);
+        }
         aclrtDestroyStream(stream);
         throw std::runtime_error(fmt::format("Lognormal: exp sync failed, error={}", ret));
     }
