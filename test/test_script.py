@@ -115,7 +115,7 @@ FUNCTIONS_TABLE = MATH_FUNCTIONS + LINALG_FUNCTIONS
 
 def test_functions():
     
-    for name, np_func, ap_func, test_cases in MATH_FUNCTIONS:
+    for name, np_func, ap_func, test_cases in FUNCTIONS_TABLE:
         print("=" * 50)
         print(f"Testing {name} function:")
         print("=" * 50)
