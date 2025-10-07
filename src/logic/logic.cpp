@@ -123,7 +123,9 @@ NPUArray All(const NPUArray& x, const std::vector<int64_t>& dim, bool keepdims) 
 
     error = aclnnAll(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         aclDestroyIntArray(aclDim);
         throw std::runtime_error("[logic.cpp](All) aclnnAll failed, error=" + std::to_string(error));
     }
