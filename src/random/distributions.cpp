@@ -54,7 +54,7 @@ NPUArray Generator_Pareto(float a, const std::vector<int64_t>& size) {
     auto error = aclnnInplaceUniformGetWorkspaceSize(uni_temp.tensorPtr, 0.0, 1.0, seed, offset, &uni_workspaceSize, &uni_executor);
     CheckGetWorkspaceSizeAclnnStatus(error);
     void* uni_workspaceAddr = nullptr;
-    if(uni_workspaceSize > 0) {
+    if(uni_workspaceSize != 0ULL) {
         error = aclrtMalloc(&uni_workspaceAddr, uni_workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         CheckMallocAclnnStatus(error);
     }
@@ -73,7 +73,7 @@ NPUArray Generator_Pareto(float a, const std::vector<int64_t>& size) {
     error = aclnnRsubsGetWorkspaceSize(uni_temp.tensorPtr, other, alpha, rsubs_temp.tensorPtr, &rsubs_workspaceSize, &rsubs_executor);
     CheckGetWorkspaceSizeAclnnStatus(error);
     void* rsubs_workspaceAddr = nullptr;
-    if(rsubs_workspaceSize > 0) {
+    if(rsubs_workspaceSize != 0ULL) {
         error = aclrtMalloc(&rsubs_workspaceAddr, rsubs_workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         CheckMallocAclnnStatus(error);
     }
@@ -90,7 +90,7 @@ NPUArray Generator_Pareto(float a, const std::vector<int64_t>& size) {
     error = aclnnPowTensorScalarGetWorkspaceSize(rsubs_temp.tensorPtr, exponent, result.tensorPtr, &exp_workspaceSize, &exp_executor);
     CheckGetWorkspaceSizeAclnnStatus(error);
     void* exp_workspaceAddr = nullptr;
-    if(exp_workspaceSize > 0) {
+    if(exp_workspaceSize != 0ULL) {
         error = aclrtMalloc(&exp_workspaceAddr, exp_workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         CheckMallocAclnnStatus(error);
     }
@@ -104,7 +104,7 @@ NPUArray Generator_Pareto(float a, const std::vector<int64_t>& size) {
     error = aclnnInplaceReciprocalGetWorkspaceSize(result.tensorPtr, &reci_workspaceSize, &reci_executor);
     CheckGetWorkspaceSizeAclnnStatus(error);
     void* reci_workspaceAddr = nullptr;
-    if(reci_workspaceSize > 0) {
+    if(reci_workspaceSize != 0ULL) {
         error = aclrtMalloc(&reci_workspaceAddr, reci_workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         CheckMallocAclnnStatus(error);
     }
@@ -118,7 +118,7 @@ NPUArray Generator_Pareto(float a, const std::vector<int64_t>& size) {
     error = aclnnInplaceSubsGetWorkspaceSize(result.tensorPtr, other, alpha, &sub_workspaceSize, &sub_executor);
     CheckGetWorkspaceSizeAclnnStatus(error);
     void* sub_workspaceAddr = nullptr;
-    if(sub_workspaceSize > 0) {
+    if(sub_workspaceSize != 0ULL) {
         error = aclrtMalloc(&sub_workspaceAddr, sub_workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         CheckMallocAclnnStatus(error);
     }
@@ -141,7 +141,7 @@ NPUArray Generator_Rayleigh(float scale, const std::vector<int64_t>& size) {
     auto error = aclnnInplaceUniformGetWorkspaceSize(uni_temp.tensorPtr, 0.0, 1.0, seed, offset, &uni_workspaceSize, &uni_executor);
     CheckGetWorkspaceSizeAclnnStatus(error);
     void* uni_workspaceAddr = nullptr;
-    if(uni_workspaceSize > 0) {
+    if(uni_workspaceSize != 0ULL) {
         error = aclrtMalloc(&uni_workspaceAddr, uni_workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         CheckMallocAclnnStatus(error);
     }
@@ -160,7 +160,7 @@ NPUArray Generator_Rayleigh(float scale, const std::vector<int64_t>& size) {
     error = aclnnRsubsGetWorkspaceSize(uni_temp.tensorPtr, other, alpha, result.tensorPtr, &rsubs_workspaceSize, &rsubs_executor);
     CheckGetWorkspaceSizeAclnnStatus(error);
     void* rsubs_workspaceAddr = nullptr;
-    if(rsubs_workspaceSize > 0) {
+    if(rsubs_workspaceSize != 0ULL) {
         error = aclrtMalloc(&rsubs_workspaceAddr, rsubs_workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         CheckMallocAclnnStatus(error);
     }
@@ -174,7 +174,7 @@ NPUArray Generator_Rayleigh(float scale, const std::vector<int64_t>& size) {
     error = aclnnInplaceLogGetWorkspaceSize(result.tensorPtr, &log_workspaceSize, &log_executor);
     CheckGetWorkspaceSizeAclnnStatus(error);
     void* log_workspaceAddr = nullptr;
-    if(log_workspaceSize > 0) {
+    if(log_workspaceSize != 0ULL) {
         error = aclrtMalloc(&log_workspaceAddr, log_workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         CheckMallocAclnnStatus(error);
     }
@@ -190,7 +190,7 @@ NPUArray Generator_Rayleigh(float scale, const std::vector<int64_t>& size) {
     error = aclnnInplaceMulsGetWorkspaceSize(result.tensorPtr, mulnum, &muls_workspaceSize, &muls_executor);
     CheckGetWorkspaceSizeAclnnStatus(error);
     void* muls_workspaceAddr = nullptr;
-    if(muls_workspaceSize > 0) {
+    if(muls_workspaceSize != 0ULL) {
         error = aclrtMalloc(&muls_workspaceAddr, muls_workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         CheckMallocAclnnStatus(error);
     }
@@ -204,7 +204,7 @@ NPUArray Generator_Rayleigh(float scale, const std::vector<int64_t>& size) {
     error = aclnnInplaceSqrtGetWorkspaceSize(result.tensorPtr, &sqrt_workspaceSize, &sqrt_executor);
     CheckGetWorkspaceSizeAclnnStatus(error);
     void* sqrt_workspaceAddr = nullptr;
-    if(sqrt_workspaceSize > 0) {
+    if(sqrt_workspaceSize != 0ULL) {
         error = aclrtMalloc(&sqrt_workspaceAddr, sqrt_workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         CheckMallocAclnnStatus(error);
     }
@@ -219,7 +219,7 @@ NPUArray Generator_Rayleigh(float scale, const std::vector<int64_t>& size) {
     error = aclnnInplaceMulsGetWorkspaceSize(result.tensorPtr, muls, &workspaceSize, &executor);
     CheckGetWorkspaceSizeAclnnStatus(error);
     void* workspaceAddr = nullptr;
-    if(workspaceSize > 0) {
+    if(workspaceSize != 0ULL) {
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         CheckMallocAclnnStatus(error);
     }
@@ -242,7 +242,7 @@ NPUArray Generator_Normal(float loc, float scale, const std::vector<int64_t>& si
     auto error = aclnnNormalFloatFloatGetWorkspaceSize(loc, scale, seed, offset, result.tensorPtr, &workspaceSize, &executor);
     CheckGetWorkspaceSizeAclnnStatus(error);
     void* workspaceAddr = nullptr;
-    if(workspaceSize > 0) {
+    if(workspaceSize != 0ULL) {
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         CheckMallocAclnnStatus(error);
     }
@@ -265,7 +265,7 @@ NPUArray Generator_Uniform(double low, double high, const std::vector<int64_t>& 
     auto error = aclnnInplaceUniformGetWorkspaceSize(result.tensorPtr, low, high, seed, offset, &workspaceSize, &executor);
     CheckGetWorkspaceSizeAclnnStatus(error);
     void* workspaceAddr = nullptr;
-    if(workspaceSize > 0) {
+    if(workspaceSize != 0ULL) {
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         CheckMallocAclnnStatus(error);
     }
@@ -290,7 +290,7 @@ NPUArray Generator_Standard_normal(const std::vector<int64_t>& size) {
     auto error = aclnnNormalFloatFloatGetWorkspaceSize(loc, scale, seed, offset, result.tensorPtr, &workspaceSize, &executor);
     CheckGetWorkspaceSizeAclnnStatus(error);
     void* workspaceAddr = nullptr;
-    if(workspaceSize > 0) {
+    if(workspaceSize != 0ULL) {
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         CheckMallocAclnnStatus(error);
     }
@@ -313,7 +313,7 @@ NPUArray Generator_Standard_cauchy(const std::vector<int64_t>& size) {
     auto error = aclnnInplaceUniformGetWorkspaceSize(result.tensorPtr, 0.0, 1.0, seed, offset, &uni_workspaceSize, &uni_executor);
     CheckGetWorkspaceSizeAclnnStatus(error);
     void* uni_workspaceAddr = nullptr;
-    if(uni_workspaceSize > 0) {
+    if(uni_workspaceSize != 0ULL) {
         error = aclrtMalloc(&uni_workspaceAddr, uni_workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         CheckMallocAclnnStatus(error);
     }
@@ -331,7 +331,7 @@ NPUArray Generator_Standard_cauchy(const std::vector<int64_t>& size) {
     error = aclnnInplaceSubsGetWorkspaceSize(result.tensorPtr, other, alpha, &subs_workspaceSize, &subs_executor);
     CheckGetWorkspaceSizeAclnnStatus(error);
     void* subs_workspaceAddr = nullptr;
-    if(subs_workspaceSize > 0) {
+    if(subs_workspaceSize != 0ULL) {
         error = aclrtMalloc(&subs_workspaceAddr, subs_workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         CheckMallocAclnnStatus(error);
     }
@@ -347,7 +347,7 @@ NPUArray Generator_Standard_cauchy(const std::vector<int64_t>& size) {
     error = aclnnInplaceMulsGetWorkspaceSize(result.tensorPtr, pi, &muls_workspaceSize, &muls_executor);
     CheckGetWorkspaceSizeAclnnStatus(error);
     void* muls_workspaceAddr = nullptr;
-    if(muls_workspaceSize > 0) {
+    if(muls_workspaceSize != 0ULL) {
         error = aclrtMalloc(&muls_workspaceAddr, muls_workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         CheckMallocAclnnStatus(error);
     }
@@ -361,7 +361,7 @@ NPUArray Generator_Standard_cauchy(const std::vector<int64_t>& size) {
     error = aclnnInplaceTanGetWorkspaceSize(result.tensorPtr, &tan_workspaceSize, &tan_executor);
     CheckGetWorkspaceSizeAclnnStatus(error);
     void* tan_workspaceAddr = nullptr;
-    if(tan_workspaceSize > 0) {
+    if(tan_workspaceSize != 0ULL) {
         error = aclrtMalloc(&tan_workspaceAddr, tan_workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         CheckMallocAclnnStatus(error);
     }
@@ -384,7 +384,7 @@ NPUArray Generator_Weibull(float a, const std::vector<int64_t>& size) {
     auto error = aclnnInplaceUniformGetWorkspaceSize(uni_temp.tensorPtr, 0.0, 1.0, seed, offset, &uni_workspaceSize, &uni_executor);
     CheckGetWorkspaceSizeAclnnStatus(error);
     void* uni_workspaceAddr = nullptr;
-    if(uni_workspaceSize > 0) {
+    if(uni_workspaceSize != 0ULL) {
         error = aclrtMalloc(&uni_workspaceAddr, uni_workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         CheckMallocAclnnStatus(error);
     }
@@ -403,7 +403,7 @@ NPUArray Generator_Weibull(float a, const std::vector<int64_t>& size) {
     error = aclnnRsubsGetWorkspaceSize(uni_temp.tensorPtr, other1, alpha, rsubs_temp.tensorPtr, &rsubs_workspaceSize1, &rsubs_executor1);
     CheckGetWorkspaceSizeAclnnStatus(error);
     void* rsubs_workspaceAddr1 = nullptr;
-    if(rsubs_workspaceSize1 > 0) {
+    if(rsubs_workspaceSize1 != 0ULL) {
         error = aclrtMalloc(&rsubs_workspaceAddr1, rsubs_workspaceSize1, ACL_MEM_MALLOC_HUGE_FIRST);
         CheckMallocAclnnStatus(error);
     }
@@ -417,7 +417,7 @@ NPUArray Generator_Weibull(float a, const std::vector<int64_t>& size) {
     error = aclnnInplaceLogGetWorkspaceSize(rsubs_temp.tensorPtr, &log_workspaceSize, &log_executor);
     CheckGetWorkspaceSizeAclnnStatus(error);
     void* log_workspaceAddr = nullptr;
-    if(log_workspaceSize > 0) {
+    if(log_workspaceSize != 0ULL) {
         error = aclrtMalloc(&log_workspaceAddr, log_workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         CheckMallocAclnnStatus(error);
     }
@@ -434,7 +434,7 @@ NPUArray Generator_Weibull(float a, const std::vector<int64_t>& size) {
     error = aclnnRsubsGetWorkspaceSize(rsubs_temp.tensorPtr, other2, alpha, result.tensorPtr, &rsubs_workspaceSize, &rsubs_executor);
     CheckGetWorkspaceSizeAclnnStatus(error);
     void* rsubs_workspaceAddr = nullptr;
-    if(rsubs_workspaceSize > 0) {
+    if(rsubs_workspaceSize != 0ULL) {
         error = aclrtMalloc(&rsubs_workspaceAddr, rsubs_workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         CheckMallocAclnnStatus(error);
     }
@@ -450,7 +450,7 @@ NPUArray Generator_Weibull(float a, const std::vector<int64_t>& size) {
     error = aclnnPowTensorScalarGetWorkspaceSize(result.tensorPtr, exponent, result.tensorPtr, &exp_workspaceSize, &exp_executor);
     CheckGetWorkspaceSizeAclnnStatus(error);
     void* exp_workspaceAddr = nullptr;
-    if(exp_workspaceSize > 0) {
+    if(exp_workspaceSize != 0ULL) {
         error = aclrtMalloc(&exp_workspaceAddr, exp_workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         CheckMallocAclnnStatus(error);
     }
@@ -513,7 +513,7 @@ NPUArray Binomial(int n, float p, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error(fmt::format("Binomial: bernoulli get ws failed, error={}", ret));
     }
-    if (bernoulli_ws > 0) {
+    if (bernoulli_ws != 0ULL) {
         ret = aclrtMalloc(&bernoulli_ws_addr, bernoulli_ws, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclrtDestroyStream(stream);
@@ -566,7 +566,7 @@ NPUArray Binomial(int n, float p, const std::vector<int64_t>& size) {
     }
 
     // 6.3 分配求和工作空间并执行
-    if (sum_ws > 0) {
+    if (sum_ws != 0ULL) {
         ret = aclrtMalloc(&sum_ws_addr, sum_ws, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclDestroyIntArray(dims_array);
@@ -634,7 +634,7 @@ NPUArray Exponential(float scale, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error(fmt::format("Exponential: uniform get ws failed, error={}", ret));
     }
-    if (uniform_ws > 0) {
+    if (uniform_ws != 0ULL) {
         ret = aclrtMalloc(&uniform_ws_addr, uniform_ws, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclrtDestroyStream(stream);
@@ -690,7 +690,7 @@ NPUArray Exponential(float scale, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error("Exponential: sub get ws failed");
     }
-    if (sub_ws > 0) {
+    if (sub_ws != 0ULL) {
         ret = aclrtMalloc(&sub_ws_addr, sub_ws, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclDestroyScalar(alpha_scalar);
@@ -725,7 +725,7 @@ NPUArray Exponential(float scale, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error("Exponential: log get ws failed");
     }
-    if (log_ws > 0) {
+    if (log_ws != 0ULL) {
         ret = aclrtMalloc(&log_ws_addr, log_ws, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclrtDestroyStream(stream);
@@ -770,7 +770,7 @@ NPUArray Exponential(float scale, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error("Exponential: mul get ws failed");
     }
-    if (mul_ws > 0) {
+    if (mul_ws != 0ULL) {
         ret = aclrtMalloc(&mul_ws_addr, mul_ws, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclrtDestroyStream(stream);
@@ -829,7 +829,7 @@ NPUArray Geometric(float p, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error("Geometric: uniform get ws failed");
     }
-    if (uniform_ws > 0) {
+    if (uniform_ws != 0ULL) {
         ret = aclrtMalloc(&uniform_ws_addr, uniform_ws, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclrtDestroyStream(stream);
@@ -885,7 +885,7 @@ NPUArray Geometric(float p, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error("Geometric: sub get ws failed");
     }
-    if (sub_ws > 0) {
+    if (sub_ws != 0ULL) {
         ret = aclrtMalloc(&sub_ws_addr, sub_ws, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclDestroyScalar(alpha_scalar);
@@ -921,7 +921,7 @@ NPUArray Geometric(float p, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error("Geometric: log get ws failed");
     }
-    if (log_ws > 0) {
+    if (log_ws != 0ULL) {
         ret = aclrtMalloc(&log_ws_addr, log_ws, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclrtDestroyStream(stream);
@@ -966,7 +966,7 @@ NPUArray Geometric(float p, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error("Geometric: div get ws failed");
     }
-    if (div_ws > 0) {
+    if (div_ws != 0ULL) {
         ret = aclrtMalloc(&div_ws_addr, div_ws, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclrtDestroyStream(stream);
@@ -997,7 +997,7 @@ NPUArray Geometric(float p, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error("Geometric: floor get ws failed");
     }
-    if (floor_ws > 0) {
+    if (floor_ws != 0ULL) {
         ret = aclrtMalloc(&floor_ws_addr, floor_ws, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclrtDestroyStream(stream);
@@ -1052,7 +1052,7 @@ NPUArray Geometric(float p, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error("Geometric: add get ws failed");
     }
-    if (add_ws > 0) {
+    if (add_ws != 0ULL) {
         ret = aclrtMalloc(&add_ws_addr, add_ws, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclDestroyScalar(alpha_one);
@@ -1115,7 +1115,7 @@ NPUArray Gumbel(double loc, double scale, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error(fmt::format("Gumbel: uniform get ws failed, error={}", ret));
     }
-    if (uniform_ws > 0) {
+    if (uniform_ws != 0ULL) {
         ret = aclrtMalloc(&uniform_ws_addr, uniform_ws, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclrtDestroyStream(stream);
@@ -1153,7 +1153,7 @@ NPUArray Gumbel(double loc, double scale, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error(fmt::format("Gumbel: log get ws failed, error={}", ret));
     }
-    if (log_ws > 0) {
+    if (log_ws != 0ULL) {
         ret = aclrtMalloc(&log_ws_addr, log_ws, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclrtDestroyStream(stream);
@@ -1198,7 +1198,7 @@ NPUArray Gumbel(double loc, double scale, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error(fmt::format("Gumbel: mul(get) -neg log get ws failed, error={}", ret));
     }
-    if (mul_ws1 > 0) {
+    if (mul_ws1 != 0ULL) {
         ret = aclrtMalloc(&mul_ws_addr1, mul_ws1, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclrtDestroyStream(stream);
@@ -1229,7 +1229,7 @@ NPUArray Gumbel(double loc, double scale, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error(fmt::format("Gumbel: log2 get ws failed, error={}", ret));
     }
-    if (log2_ws > 0) {
+    if (log2_ws != 0ULL) {
         ret = aclrtMalloc(&log2_ws_addr, log2_ws, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclrtDestroyStream(stream);
@@ -1274,7 +1274,7 @@ NPUArray Gumbel(double loc, double scale, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error(fmt::format("Gumbel: mul(get) scale get ws failed, error={}", ret));
     }
-    if (mul_ws2 > 0) {
+    if (mul_ws2 != 0ULL) {
         ret = aclrtMalloc(&mul_ws_addr2, mul_ws2, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclrtDestroyStream(stream);
@@ -1335,7 +1335,7 @@ NPUArray Gumbel(double loc, double scale, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error(fmt::format("Gumbel: sub get ws failed, error={}", ret));
     }
-    if (sub_ws > 0) {
+    if (sub_ws != 0ULL) {
         ret = aclrtMalloc(&sub_ws_addr, sub_ws, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclDestroyScalar(alpha_scalar);
@@ -1398,7 +1398,7 @@ NPUArray Laplace(double loc, double scale, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error(fmt::format("Laplace: uniform get ws failed, error={}", ret));
     }
-    if (uniform_ws > 0) {
+    if (uniform_ws != 0ULL) {
         ret = aclrtMalloc(&uniform_ws_addr, uniform_ws, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclrtDestroyStream(stream);
@@ -1429,7 +1429,7 @@ NPUArray Laplace(double loc, double scale, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error(fmt::format("Laplace: abs get ws failed, error={}", ret));
     }
-    if (abs_ws > 0) {
+    if (abs_ws != 0ULL) {
         ret = aclrtMalloc(&abs_ws_addr, abs_ws, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclrtDestroyStream(stream);
@@ -1475,7 +1475,7 @@ NPUArray Laplace(double loc, double scale, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error(fmt::format("Laplace: mul(get) two*abs get ws failed, error={}", ret));
     }
-    if (mul_ws1 > 0) {
+    if (mul_ws1 != 0ULL) {
         ret = aclrtMalloc(&mul_ws_addr1, mul_ws1, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclrtDestroyStream(stream);
@@ -1528,7 +1528,7 @@ NPUArray Laplace(double loc, double scale, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error(fmt::format("Laplace: sub get ws failed, error={}", ret));
     }
-    if (sub_ws1 > 0) {
+    if (sub_ws1 != 0ULL) {
         ret = aclrtMalloc(&sub_ws_addr1, sub_ws1, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclDestroyScalar(alpha_scalar);
@@ -1564,7 +1564,7 @@ NPUArray Laplace(double loc, double scale, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error(fmt::format("Laplace: log get ws failed, error={}", ret));
     }
-    if (log_ws > 0) {
+    if (log_ws != 0ULL) {
         ret = aclrtMalloc(&log_ws_addr, log_ws, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclDestroyScalar(alpha_scalar);
@@ -1599,7 +1599,7 @@ NPUArray Laplace(double loc, double scale, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error(fmt::format("Laplace: div get ws(sign) failed, error={}", ret));
     }
-    if (div_ws1 > 0) {
+    if (div_ws1 != 0ULL) {
         ret = aclrtMalloc(&div_ws_addr1, div_ws1, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclDestroyScalar(alpha_scalar);
@@ -1650,7 +1650,7 @@ NPUArray Laplace(double loc, double scale, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error(fmt::format("Laplace: mul(get) scale*log get ws failed, error={}", ret));
     }
-    if (mul_ws2 > 0) {
+    if (mul_ws2 != 0ULL) {
         ret = aclrtMalloc(&mul_ws_addr2, mul_ws2, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclDestroyScalar(alpha_scalar);
@@ -1685,7 +1685,7 @@ NPUArray Laplace(double loc, double scale, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error(fmt::format("Laplace: mul(get) sign*scaled get ws failed, error={}", ret));
     }
-    if (mul_ws3 > 0) {
+    if (mul_ws3 != 0ULL) {
         ret = aclrtMalloc(&mul_ws_addr3, mul_ws3, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclDestroyScalar(alpha_scalar);
@@ -1737,7 +1737,7 @@ NPUArray Laplace(double loc, double scale, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error(fmt::format("Laplace: sub get ws2 failed, error={}", ret));
     }
-    if (sub_ws2 > 0) {
+    if (sub_ws2 != 0ULL) {
         ret = aclrtMalloc(&sub_ws_addr2, sub_ws2, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclDestroyScalar(alpha_scalar);
@@ -1800,7 +1800,7 @@ NPUArray Logistic(double loc, double scale, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error(fmt::format("Logistic: uniform get ws failed, error={}", ret));
     }
-    if (uniform_ws > 0) {
+    if (uniform_ws != 0ULL) {
         ret = aclrtMalloc(&uniform_ws_addr, uniform_ws, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclrtDestroyStream(stream);
@@ -1851,7 +1851,7 @@ NPUArray Logistic(double loc, double scale, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error("Logistic: sub get ws failed");
     }
-    if (sub_ws > 0) {
+    if (sub_ws != 0ULL) {
         ret = aclrtMalloc(&sub_ws_addr, sub_ws, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclDestroyScalar(alpha_scalar);
@@ -1886,7 +1886,7 @@ NPUArray Logistic(double loc, double scale, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error("Logistic: div get ws failed");
     }
-    if (div_ws > 0) {
+    if (div_ws != 0ULL) {
         ret = aclrtMalloc(&div_ws_addr, div_ws, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclrtDestroyStream(stream);
@@ -1917,7 +1917,7 @@ NPUArray Logistic(double loc, double scale, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error("Logistic: log get ws failed");
     }
-    if (log_ws > 0) {
+    if (log_ws != 0ULL) {
         ret = aclrtMalloc(&log_ws_addr, log_ws, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclrtDestroyStream(stream);
@@ -1962,7 +1962,7 @@ NPUArray Logistic(double loc, double scale, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error("Logistic: mul get ws failed");
     }
-    if (mul_ws > 0) {
+    if (mul_ws != 0ULL) {
         ret = aclrtMalloc(&mul_ws_addr, mul_ws, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclrtDestroyStream(stream);
@@ -2009,7 +2009,7 @@ NPUArray Logistic(double loc, double scale, const std::vector<int64_t>& size) {
         aclrtDestroyStream(stream);
         throw std::runtime_error("Logistic: add get ws failed");
     }
-    if (add_ws > 0) {
+    if (add_ws != 0ULL) {
         ret = aclrtMalloc(&add_ws_addr, add_ws, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclDestroyScalar(alpha_add);
@@ -2085,7 +2085,7 @@ NPUArray Lognormal(float mean, float sigma, const std::vector<int64_t>& size) {
         throw std::runtime_error(fmt::format("Lognormal: normal get ws failed, error={}", ret));
     }
 
-    if (normal_ws > 0) {
+    if (normal_ws != 0ULL) {
         ret = aclrtMalloc(&normal_ws_addr, normal_ws, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclrtDestroyStream(stream);
@@ -2121,7 +2121,7 @@ NPUArray Lognormal(float mean, float sigma, const std::vector<int64_t>& size) {
         throw std::runtime_error(fmt::format("Lognormal: exp get ws failed, error={}", ret));
     }
 
-    if (exp_ws > 0) {
+    if (exp_ws != 0ULL) {
         ret = aclrtMalloc(&exp_ws_addr, exp_ws, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             aclrtDestroyStream(stream);
