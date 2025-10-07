@@ -1,6 +1,7 @@
 from .asnumpy_core import *
 from .asnumpy_core.math import * 
 from .asnumpy_core.cann import * 
+from .asnumpy_core.logic import * 
 from .asnumpy_core import linalg  
 # linalg模块内部分需要ap.linalg.xxx调用，部分ap.yyy调用，
 # yyy类函数分到了.asnumpy_core根模块中
@@ -89,7 +90,24 @@ __all__ = [
     "maximum",
     "minimum",
     "fmax",
-    "fmin"
+    "fmin",
+    # logic
+    "all",
+    "any",
+    "isfinite",
+    "isinf",
+    "isneginf",
+    "isposinf",
+    "logical_and",
+    "logical_or",
+    "logical_not",
+    "logical_xor",
+    "greater",
+    "greater_equal",
+    "less",
+    "less_equal",
+    "equal",
+    "not_equal",
 ]
 
 

@@ -12,6 +12,7 @@ add_subdirectory(cann)
 # add_subdirectory(dtypes)
 add_subdirectory(linalg)
 add_subdirectory(math)
+add_subdirectory(logic)
 add_subdirectory(utils)
 
 target_link_libraries(asnumpy INTERFACE array cann dtypes linalg math utils)
