@@ -16,6 +16,8 @@
 namespace py = pybind11;
 using namespace asnumpy;
 
+namespace asnumpy {
+
 void bind_trigonometric_functions(py::module_& math);
 void bind_hyperbolic_functions(py::module_& math);
 void bind_rounding(py::module_& math);
@@ -27,6 +29,9 @@ void bind_rational_routines(py::module_& math);
 void bind_arithmetic_operations(py::module_& math);
 void bind_handling_complex_numbers(py::module_& math);
 void bind_miscellaneous(py::module_& math);
+
+}
+
 
 void bind_math(py::module_& math) {
     math.doc() = "math module of asnumpy";
@@ -44,6 +49,7 @@ void bind_math(py::module_& math) {
 }
 
 
+namespace asnumpy {
 void bind_trigonometric_functions(py::module_& math){   
     math.def("sin", &Sin, py::arg("x"));
     math.def("cos", &Cos, py::arg("x"));
@@ -171,4 +177,6 @@ void bind_rounding(py::module_& math){
     math.def("floor", &Floor, py::arg("x"), py::arg("dtype") = py::none());
     math.def("ceil", &Ceil, py::arg("x"), py::arg("dtype") = py::none());
     math.def("trunc", &Trunc, py::arg("x"), py::arg("dtype") = py::none());
+}
+
 }
