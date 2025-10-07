@@ -36,9 +36,6 @@ namespace asnumpy {
             x.tensorPtr, out.tensorPtr, &workspaceSize, &executor
         );
         CheckGetWorkspaceSizeAclnnStatus(error);
-        if (workspaceSize == 0ULL) {
-            throw std::runtime_error("[math.cpp](arcsin) Invalid workspaceSize: " + std::to_string(workspaceSize));
-        }
 
         void* workspaceAddr = nullptr;
         if (workspaceSize != 0ULL) {
@@ -73,9 +70,6 @@ namespace asnumpy {
             x.tensorPtr, out.tensorPtr, &workspaceSize, &executor
         );
         CheckGetWorkspaceSizeAclnnStatus(error);
-        if (workspaceSize == 0ULL) {
-            throw std::runtime_error("[math.cpp](arcsin) Invalid workspaceSize: " + std::to_string(workspaceSize));
-        }
 
         void* workspaceAddr = nullptr;
         if (workspaceSize != 0ULL) {
@@ -110,9 +104,6 @@ namespace asnumpy {
             x.tensorPtr, out.tensorPtr, &workspaceSize, &executor
         );
         CheckGetWorkspaceSizeAclnnStatus(error);
-        if (workspaceSize == 0ULL) {
-            throw std::runtime_error("[math.cpp](arcsin) Invalid workspaceSize: " + std::to_string(workspaceSize));
-        }
 
         void* workspaceAddr = nullptr;
         if (workspaceSize != 0ULL) {
@@ -147,9 +138,6 @@ namespace asnumpy {
             x.tensorPtr, out.tensorPtr, &workspaceSize, &executor
         );
         CheckGetWorkspaceSizeAclnnStatus(error);
-        if (workspaceSize == 0ULL) {
-            throw std::runtime_error("[math.cpp](arcsin) Invalid workspaceSize: " + std::to_string(workspaceSize));
-        }
 
         void* workspaceAddr = nullptr;
         if (workspaceSize != 0ULL) {
@@ -184,9 +172,6 @@ namespace asnumpy {
             x.tensorPtr, out.tensorPtr, &workspaceSize, &executor
         );
         CheckGetWorkspaceSizeAclnnStatus(error);
-        if (workspaceSize == 0ULL) {
-            throw std::runtime_error("[math.cpp](arccos) Invalid workspaceSize: " + std::to_string(workspaceSize));
-        }
 
         void* workspaceAddr = nullptr;
         if (workspaceSize != 0ULL) {
@@ -219,13 +204,7 @@ namespace asnumpy {
         aclOpExecutor *executor;
 
         auto error = aclnnAtanGetWorkspaceSize(x.tensorPtr, out.tensorPtr, &workspaceSize, &executor);
-        if(error != ACL_SUCCESS) {
-            throw std::runtime_error(fmt::format("[math.cpp](arctan) aclnnAtanGetWorkspaceSize error = {}", error));
-        }
-
-        if(workspaceSize == 0ULL) {
-            throw std::runtime_error(fmt::format("[math.cpp](arctan) Invalid workspaceSize: {}", workspaceSize));
-        }
+        CheckGetWorkspaceSizeAclnnStatus(error);
 
         void *workspaceAddr = nullptr;
         if(workspaceSize != 0ULL) {

@@ -18,7 +18,7 @@ namespace asnumpy {
  * @param x2 NPUArray, input array (integer type)
  * @return NPUArray Element-wise LCM of x1 and x2
  */
-NPUArray Lcm(const NPUArray& x1, const NPUArray& x2);
+NPUArray Lcm(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> dtype = std::nullopt);
 
 /**
  * @brief Compute element-wise greatest common divisor (GCD).
@@ -29,6 +29,6 @@ NPUArray Lcm(const NPUArray& x1, const NPUArray& x2);
  * @param x2 NPUArray, input array (integer type)
  * @return NPUArray Element-wise GCD of x1 and x2
  */
-NPUArray Gcd(const NPUArray& x1, const NPUArray& x2);
+NPUArray Gcd(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> dtype = std::nullopt);
 
 }

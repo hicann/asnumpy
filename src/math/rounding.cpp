@@ -12,6 +12,7 @@
 #include <fmt/format.h>
 #include <stdexcept>
 
+namespace asnumpy {
 
 NPUArray Around(const NPUArray& x, int decimals, std::optional<py::dtype> dtype) {
     auto shape = x.shape;
@@ -400,4 +401,6 @@ NPUArray Trunc(const NPUArray& x, std::optional<py::dtype> dtype) {
     }
 
     return result;
+}
+
 }
