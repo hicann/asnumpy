@@ -1,0 +1,19 @@
+include CMakeLists.txt
+include setup.py
+include pyproject.toml
+include LICENSE
+include README.md
+
+recursive-include asnumpy *
+recursive-include include *
+recursive-include src *
+recursive-include python *
+recursive-include third_party *
+recursive-include test *
+recursive-include docs *
+recursive-include .gitcode *
+
+global-exclude __pycache__ *.py[cod] *.so *.pyd *.dll *.dylib
+global-exclude *.a *.o *.obj *.lib
+global-exclude *.log *.tmp *.bak *~
+global-exclude build/ dist/ *.egg-info/
