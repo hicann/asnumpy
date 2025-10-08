@@ -31,5 +31,6 @@ target_link_libraries(asnumpy_core
     cann
     utils
     linalg
+    random
     math
 )
