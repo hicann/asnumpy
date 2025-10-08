@@ -27,12 +27,9 @@ target_link_libraries(asnumpy_core
 )
 target_link_libraries(asnumpy_core
     PUBLIC
+    array
     cann
     utils
     linalg
     math
-    )
-
-set_target_properties(asnumpy_core PROPERTIES
-	LIBRARY_OUTPUT_DIRECTORY "${PYTHON_MODULE_OUTPUT_DIR}"
 )
