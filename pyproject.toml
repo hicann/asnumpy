@@ -1,30 +1,33 @@
 [build-system]
 requires = [
-  "setuptools>=78",
+  "setuptools>=61",
   "wheel",
-  "numpy>=1.24",
+  "numpy>=1.26",
   "cmake>=3.22",
   "ninja",
-  "pybind11>=3.0.0"
 ]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "asnumpy"
-version = "0.0.1"
-description = "asnumpy"
+dynamic = ["version"]
+description = "A NumPy-like library accelerated by Ascend NPU"
 readme = "README.md"
 authors = [{ name = "神里绫华的狗", email = "wuzhenqing@stu.hit.edu.cn" }]
-license = "Apache-2.0"
+license = { text = "Apache-2.0" }
 classifiers = [
     "Programming Language :: Python :: 3",
+    "Programming Language :: C++",
+    "Intended Audience :: Developers",
     "Operating System :: POSIX :: Linux"
 ]
 requires-python = ">=3.9"
 dependencies = [
-    "numpy>=1.24.0",
-    "pybind11>=3.0.0"
+    "numpy>=1.26.0"
 ]
 
-[tool.setuptools.packages.find]
-where = ["."]
+[tool.setuptools]
+packages = ["asnumpy", "asnumpy.lib"]
+
+[tool.setuptools.dynamic]
+version = { attr = "asnumpy.__version__" }

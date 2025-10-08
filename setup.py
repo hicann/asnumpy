@@ -1,69 +1,91 @@
 import os
+import re
 import sys
 import subprocess
+import shutil
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 
-# Custom build class integrating CMake build process
+def get_version():
+    init_file_path = os.path.join(os.path.dirname(__file__), "asnumpy", "__init__.py")
+    with open(init_file_path, "r", encoding="utf-8") as f:
+        content = f.read()
+    version_match = re.search(r'^__version__ = [\'"]([^\'"]*)[\'"]', content, re.MULTILINE)
+    if version_match:
+        return version_match.group(1)
+    else:
+        raise RuntimeError("Unable to find version string in asnumpy/__init__.py")
+
+class CMakeClean(build_ext):
+    def run(self):
+        project_root = os.path.abspath(os.path.dirname(__file__))
+        build_temp = self.build_temp
+        if os.path.exists(build_temp):
+            print(f"Cleaning build directory: {build_temp}")
+            shutil.rmtree(build_temp)
+        super().run()
+
+
 class CMakeBuild(build_ext):
     def run(self):
-        # Get the project root directory path
-        project_root = os.path.abspath(os.path.dirname(__file__))
-        # Set the build temporary directory
-        build_directory = os.path.join(project_root, 'build')
-        if not os.path.exists(build_directory):
-            os.makedirs(build_directory)
+        try:
+            out = subprocess.check_output(["cmake", "--version"])
+        except OSError:
+            raise RuntimeError("CMake must be installed to build the following extensions: " +
+                               ", ".join(e.name for e in self.extensions))
 
-        # Set build type to Release
-        cfg = 'Release'
-        # Build CMake arguments list
+        project_root = os.path.abspath(os.path.dirname(__file__))
+
+        build_temp = self.build_temp
+        build_lib = self.build_lib
+        os.makedirs(build_temp, exist_ok=True)
+
         cmake_args = [
-            f'-DCMAKE_BUILD_TYPE={cfg}',  # Build type
-            f'-DPYTHON_EXECUTABLE={sys.executable}',  # Specify Python interpreter path
+            f"-DCMAKE_BUILD_TYPE=Release",
+            f"-DPYTHON_EXECUTABLE={sys.executable}",
+            f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={os.path.abspath(os.path.join(build_lib, 'asnumpy', 'lib'))}",
+            f"-DCMAKE_RUNTIME_OUTPUT_DIRECTORY={os.path.abspath(os.path.join(build_lib, 'asnumpy', 'lib'))}",
         ]
 
-        # Build arguments configuration
-        build_args = ['--config', cfg]
-        cmake_args += ['-G', 'Ninja']  # Use Ninja build system
-        # Parallel build arguments, determined by the number of CPU cores
-        build_args += ['--', '-j', str(os.cpu_count() or 4)]
+        try:
+            subprocess.check_output(["ninja", "--version"])
+            ninja_path = shutil.which("ninja")
+            print(f"Found ninja at: {ninja_path}")
+            
+            cmake_args += [
+                "-G", "Ninja",
+                f"-DCMAKE_MAKE_PROGRAM={ninja_path}"
+            ]
+        except (OSError, subprocess.CalledProcessError):
+            print("Ninja not found or not working. Falling back to default generator.")
+        
+        print(f"Configuring CMake in {build_temp}...")
+        subprocess.check_call(["cmake", project_root] + cmake_args, cwd=build_temp)
 
-        # Execute CMake configure stage
-        print(f"Running CMake configure in {build_directory}...")
-        subprocess.check_call(['cmake', project_root] + cmake_args, cwd=build_directory)
+        build_args = ["--config", "Release"]
+        if "CMAKE_BUILD_PARALLEL_LEVEL" not in os.environ:
+            if hasattr(self, "parallel") and self.parallel:
+                build_args += [f"-j{self.parallel}"]
+            else:
+                build_args += [f"-j{os.cpu_count() or 1}"]
+        
+        print(f"Building with CMake in {build_temp}...")
+        subprocess.check_call(["cmake", "--build", "."] + build_args, cwd=build_temp)
 
-        # Execute CMake build stage
-        print(f"Building in {build_directory}...")
-        subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=build_directory)
-
-# Extension module definition
 npu_array_extension = Extension(
-    # Full module path: asnumpy.lib._NPUArray
-    'asnumpy.lib.asnumpy_core',
-    sources=[],  # No direct source files (built by CMake)
-    # Specify library file search path
-    library_dirs=['asnumpy/lib'],  # Build product storage path
-    # Runtime library search path ($ORIGIN indicates the module directory)
-    runtime_library_dirs=['$ORIGIN', '$ORIGIN/lib'],
-    # Libraries to link (automatically matches libNPUArray.so and variants with version numbers)
-    libraries=['asnumpy_core'],
-    # Link arguments: Embed RPATH information into the binary
-    extra_link_args=['-Wl,-rpath,$ORIGIN/lib']
+    name="asnumpy.lib.asnumpy_core",
+    sources=[]
 )
+
+
 
 # Package configuration
 setup(
-    name='asnumpy',  # Package name
-    version='0.1.0',  # Version number
-    # Included sub-packages
-    packages=['asnumpy', 'asnumpy.lib'],
-    # Package path mapping (empty string indicates the current directory)
-    package_dir={'': '.'},
-    # Package data file configuration (specifies binary files to include)
-    package_data={'asnumpy.lib': ['*.so', '*.pyd']},
-    include_package_data=True,  # Enable inclusion of package data files
-    ext_modules=[npu_array_extension],  # Extension module list
-    # Register build command class
-    cmdclass={'build_ext': CMakeBuild},
-    zip_safe=False,  # Disable zip installation (because it contains binary files)
+    ext_modules=[npu_array_extension],
+    cmdclass={
+        "clean": CMakeClean,
+        "build_ext": CMakeBuild,
+    },
+    packages=["asnumpy", "asnumpy.lib"],
+    zip_safe = False,
 )

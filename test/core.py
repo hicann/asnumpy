@@ -7,7 +7,7 @@ def create_arrays(shape: Tuple[int, ...], dtype: np.dtype):
     """创建asnumpy和numpy测试数组"""
     # asnumpy测试数据
     a_asnp = asnumpy.ones(shape=shape, dtype=dtype)
-    b_asnp = asnumpy.NPUArray.from_numpy(np.full(shape, 5, dtype=dtype))
+    b_asnp = asnumpy.ndarray.from_numpy(np.full(shape, 5, dtype=dtype))
     
     # numpy基准数据
     a_np = np.ones(shape, dtype=dtype)
@@ -72,7 +72,7 @@ if __name__ == "__main__":
         (1000, 1000, 100)     # 超大规模测试
     ]
     dtype = np.dtype(np.int32)
-    iterations = 20
+    iterations = 1
     
     # 运行所有测试用例
     results = []

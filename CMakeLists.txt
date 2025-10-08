@@ -24,13 +24,8 @@ find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
 include_directories(/usr/local/Ascend/ascend-toolkit/latest/include)
 link_directories(/usr/local/Ascend/ascend-toolkit/latest/lib64)
 
-# Add NumPy include directories
 include_directories(${Python3_NumPy_INCLUDE_DIRS})
-
-set(PYTHON_MODULE_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/asnumpy/lib")
 
 include_directories(include)
 add_subdirectory(src)
 add_subdirectory(python)
-
-# target_link_libraries(asnumpy_core PRIVATE fmt::fmt ascendcl runtime nnopbase opapi)
