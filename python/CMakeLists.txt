@@ -6,6 +6,7 @@ pybind11_add_module(asnumpy_core
     bind_fft.cpp
     bind_linalg.cpp
     bind_math.cpp
+    bind_logic.cpp
     bind_random.cpp
     bind_testing.cpp
     bind_utils.cpp
@@ -33,4 +34,9 @@ target_link_libraries(asnumpy_core
     linalg
     random
     math
+    logic
+    )
+
+set_target_properties(asnumpy_core PROPERTIES
+	LIBRARY_OUTPUT_DIRECTORY "${PYTHON_MODULE_OUTPUT_DIR}"
 )

@@ -108,8 +108,28 @@ LINALG_FUNCTIONS = [
     ("outer", np.outer, ap.outer, OUTER_TEST_CASES),
     ("inv",np.linalg.inv,ap.linalg.inv,DET_SLOGDET_TEST_CASES)
 ]
+
+LOGIC_FUNCTIONS = [
+    ("all", np.all, ap.all, UNARY_TEST_CASES),
+    ("any", np.any, ap.any, UNARY_TEST_CASES),
+    ("isfinite", np.isfinite, ap.isfinite, UNARY_TEST_CASES),
+    ("isinf", np.isinf, ap.isinf, UNARY_TEST_CASES),
+    ("isneginf", np.isneginf, ap.isneginf, UNARY_TEST_CASES),
+    ("isposinf", np.isposinf, ap.isposinf, UNARY_TEST_CASES),
+    ("logical_and", np.logical_and, ap.logical_and, BINARY_TEST_CASES + BROADCAST_TEST_CASES),
+    ("logical_or", np.logical_or, ap.logical_or, BINARY_TEST_CASES + BROADCAST_TEST_CASES),
+    ("logical_not", np.logical_not, ap.logical_not, UNARY_TEST_CASES),
+    ("logical_xor", np.logical_xor, ap.logical_xor, BINARY_TEST_CASES + BROADCAST_TEST_CASES),
+    ("greater", np.greater, ap.greater, BINARY_TEST_CASES + BROADCAST_TEST_CASES),
+    ("greater_equal", np.greater_equal, ap.greater_equal, BINARY_TEST_CASES + BROADCAST_TEST_CASES),
+    ("less", np.less, ap.less, BINARY_TEST_CASES + BROADCAST_TEST_CASES),
+    ("less_equal", np.less_equal, ap.less_equal, BINARY_TEST_CASES + BROADCAST_TEST_CASES),
+    ("equal", np.equal, ap.equal, BINARY_TEST_CASES + BROADCAST_TEST_CASES),
+    ("not_equal", np.not_equal, ap.not_equal, BINARY_TEST_CASES + BROADCAST_TEST_CASES),
+]
+
 # 总表
-FUNCTIONS_TABLE = MATH_FUNCTIONS + LINALG_FUNCTIONS
+FUNCTIONS_TABLE = MATH_FUNCTIONS + LINALG_FUNCTIONS + LOGIC_FUNCTIONS
 
 # =========================测试函数本体======================
 
