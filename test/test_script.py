@@ -43,7 +43,7 @@ MATH_FUNCTIONS = [
     ("lcm", np.lcm, ap.lcm, LCM_TEST_CASES),
     ("gcd", np.gcd, ap.gcd, GCD_TEST_CASES),
     ("around", np.around, ap.around, AROUND_TEST_CASES),
-    ("round_", np.round, ap.round_, AROUND_TEST_CASES),
+    ("round", np.round, ap.round_, AROUND_TEST_CASES),
     ("rint", np.rint, ap.rint, RINT_TEST_CASES),
     ("fix", np.fix, ap.fix, FIX_TEST_CASES),
     ("floor", np.floor, ap.floor, FLOOR_TEST_CASES),
@@ -59,7 +59,7 @@ MATH_FUNCTIONS = [
     ("clip", np.clip, ap.clip, CLIP_TEST_CASES + CLIP_ARR_OBJ_CASES + CLIP_OBJ_ARR_CASES + CLIP_OBJ_OBJ_CASES),
     ("square", np.square, ap.square, UNARY_TEST_CASES),
     ("fabs", np.abs, ap.fabs, UNARY_TEST_CASES),
-    ("Nan_to_num", np.nan_to_num, ap.nan_to_num, NAN_TO_NUM_TEST_CASES),
+    ("nan_to_num", np.nan_to_num, ap.nan_to_num, NAN_TO_NUM_TEST_CASES),
     ("maximum", np.maximum, ap.maximum, MAX_MIN_TEST_CASES),
     ("minimum", np.minimum, ap.minimum, MAX_MIN_TEST_CASES),
     ("fmax", np.fmax, ap.fmax, MAX_MIN_TEST_CASES),
@@ -154,14 +154,17 @@ def test_functions():
                         for arg in test_case
                     )
                     # === 特殊函数注释说明 ===
-                    # 测试 prod, sum, nanprod, nansum 时，可使用：
-                    # np_result = np_func(test_case[0], axis=test_case[1], keepdims=test_case[2])
-                    # 测试 cross 时，可使用：
-                    # np_result = np_func(test_case[0], test_case[1], axis=test_case[2])
-                    # 测试 nan_to_num 时，可使用：
-                    # np_result = np_func(test_case[0], nan=test_case[1], posinf=test_case[2], neginf=test_case[3])
-
-                    np_result = np_func(*test_case)
+                    # 测试 prod, sum, nanprod, nansum 时，可使用：np_func(test_case[0], axis=test_case[1], keepdims=test_case[2])
+                    # 测试 cross 时，可使用：np_func(test_case[0], test_case[1], axis=test_case[2])
+                    # 测试 nan_to_num 时，可使用：np_func(test_case[0], nan=test_case[1], posinf=test_case[2], neginf=test_case[3])
+                    if name == "prod" or name == "sum" or name == "nanprod" or name == "nansum":
+                        np_result = np_func(test_case[0], axis=test_case[1], keepdims=test_case[2])
+                    elif name == "cross":
+                        np_result = np_func(test_case[0], test_case[1], axis=test_case[2])
+                    elif name == "nan_to_num":
+                        np_result = np_func(test_case[0], nan=test_case[1], posinf=test_case[2], neginf=test_case[3])
+                    else:
+                        np_result = np_func(*test_case)
                     ap_result = ap_func(*converted_args)
                 else:
                     # 单个参数的情况
