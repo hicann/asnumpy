@@ -43,7 +43,7 @@ MATH_FUNCTIONS = [
     ("lcm", np.lcm, ap.lcm, LCM_TEST_CASES),
     ("gcd", np.gcd, ap.gcd, GCD_TEST_CASES),
     ("around", np.around, ap.around, AROUND_TEST_CASES),
-    ("round", np.round, ap.round_, AROUND_TEST_CASES),
+    ("round_", np.round, ap.round_, AROUND_TEST_CASES),
     ("rint", np.rint, ap.rint, RINT_TEST_CASES),
     ("fix", np.fix, ap.fix, FIX_TEST_CASES),
     ("floor", np.floor, ap.floor, FLOOR_TEST_CASES),

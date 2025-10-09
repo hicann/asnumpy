@@ -35,8 +35,4 @@ target_link_libraries(asnumpy_core
     random
     math
     logic
-    )
-
-set_target_properties(asnumpy_core PROPERTIES
-	LIBRARY_OUTPUT_DIRECTORY "${PYTHON_MODULE_OUTPUT_DIR}"
 )

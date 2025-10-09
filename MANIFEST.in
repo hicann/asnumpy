@@ -3,8 +3,6 @@ include setup.py
 include pyproject.toml
 include LICENSE
 include README.md
-include .gitignore
-include .gitmodule
 include contributors.json
 
 recursive-include asnumpy *
@@ -12,11 +10,12 @@ recursive-include include *
 recursive-include src *
 recursive-include python *
 recursive-include third_party *
-recursive-include test *
-recursive-include docs *
-recursive-include .gitcode *
+recursive-include docs *.md *.rst
+prune docs/build
 
-global-exclude __pycache__ *.py[cod] *.so *.pyd *.dll *.dylib
+global-exclude __pycache__ *.py[cod]
 global-exclude *.a *.o *.obj *.lib
+global-exclude *.dll *.dylib
 global-exclude *.log *.tmp *.bak *~
+global-exclude .git* .github* .vscode*
 global-exclude build/ dist/ *.egg-info/
