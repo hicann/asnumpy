@@ -116,7 +116,7 @@ __all__ = [
     "gumbel",
     "laplace",
     "logistic",
-    "lognormal"
+    "lognormal",
     # logic
     "all",
     "any",
