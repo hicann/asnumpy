@@ -6,6 +6,8 @@
 
 #include <utility>
 
+namespace asnumpy{
+
 /**
  * @brief Round elements of the array to the given number of decimals.
  *
@@ -87,3 +89,5 @@ NPUArray Ceil(const NPUArray& x, std::optional<py::dtype> dtype = std::nullopt);
  * @return NPUArray Element-wise ceiling values of x
  */
 NPUArray Trunc(const NPUArray& x, std::optional<py::dtype> dtype = std::nullopt);
+
+}

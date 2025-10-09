@@ -4,6 +4,7 @@
 #include <pybind11/numpy.h>
 #include <stdexcept>
 
+namespace asnumpy {
 /**
  * @brief Compute the normalized sinc function element-wise on the input array.
  *
@@ -14,4 +15,6 @@
  * @return NPUArray Output array with sinc applied element-wise.
  * @throws std::runtime_error If the ACL operator or memory allocation fails.
  */
-NPUArray sinc(const NPUArray& x);
+NPUArray Sinc(const NPUArray& x, std::optional<py::dtype> dtype = std::nullopt);
+
+}

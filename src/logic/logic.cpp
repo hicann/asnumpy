@@ -23,32 +23,84 @@
 #include <aclnnop/aclnn_ne_scalar.h>
 #include <aclnnop/aclnn_ne_tensor.h>
 
+namespace asnumpy {
 
-/**
- * @brief Reduce array by logical AND operation over specified dimensions.
- * 
- * Equivalent to numpy.all(x, axis=dim, keepdims=keepdims), returns True if all elements along the specified dimensions are True.
- * 
- * @param x NPUArray, input array (boolean type: ACL_BOOL)
- * @param dim std::vector<int64_t>, dimensions to reduce
- * @param keepdims bool, whether to keep reduced dimensions with size 1
- * @return NPUArray Reduced boolean array
- */
+/// Reduce array by logical AND operation over all elements.
+NPUArray All(const NPUArray& x) {
+    auto result = NPUArray({}, ACL_BOOL);
+
+    uint64_t workspaceSize = 0;
+    aclOpExecutor* executor = nullptr;
+    void* workspaceAddr = nullptr;
+
+    // dim=[] (全局 reduce)
+    aclIntArray* aclDim = aclCreateIntArray(nullptr, 0);
+    if (!aclDim) {
+        throw std::runtime_error("[logic.cpp](All) failed to create empty aclIntArray");
+    }
+
+    auto error = aclnnAllGetWorkspaceSize(
+        x.tensorPtr,
+        aclDim,
+        false,  // keepdims = false
+        result.tensorPtr,
+        &workspaceSize,
+        &executor
+    );
+    if (error != ACL_SUCCESS) {
+        aclDestroyIntArray(aclDim);
+        throw std::runtime_error("[logic.cpp](All) aclnnAllGetWorkspaceSize failed, error=" + std::to_string(error));
+    }
+
+    if (workspaceSize > 0) {
+        error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
+        if (error != ACL_SUCCESS) {
+            aclDestroyIntArray(aclDim);
+            throw std::runtime_error("[logic.cpp](All) aclrtMalloc failed, error=" + std::to_string(error));
+        }
+    }
+
+    error = aclnnAll(workspaceAddr, workspaceSize, executor, nullptr);
+    if (error != ACL_SUCCESS) {
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        aclDestroyIntArray(aclDim);
+        throw std::runtime_error("[logic.cpp](All) aclnnAll failed, error=" + std::to_string(error));
+    }
+
+    error = aclrtSynchronizeDevice();
+    if (error != ACL_SUCCESS) {
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        aclDestroyIntArray(aclDim);
+        throw std::runtime_error("[logic.cpp](All) sync device failed, error=" + std::to_string(error));
+    }
+
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
+    aclDestroyIntArray(aclDim);
+
+    return result;
+}
+
+/// Reduce array by logical AND operation over specified dimensions.
 NPUArray All(const NPUArray& x, const std::vector<int64_t>& dim, bool keepdims) {
     auto result = NPUArray({}, ACL_BOOL);
 
     uint64_t workspaceSize = 0;
     aclOpExecutor* executor = nullptr;
     void* workspaceAddr = nullptr;
-    aclrtStream stream = nullptr;
-    auto error = ACL_SUCCESS;
 
+    // 构造 dim 数组
     aclIntArray* aclDim = aclCreateIntArray(dim.data(), dim.size());
-    if (aclDim == nullptr) {
-        throw std::runtime_error("All: failed to create aclIntArray");
+    if (!aclDim) {
+        throw std::runtime_error("[logic.cpp](All) failed to create aclIntArray");
     }
 
-    error = aclnnAllGetWorkspaceSize(
+    auto error = aclnnAllGetWorkspaceSize(
         x.tensorPtr,
         aclDim,
         keepdims,
@@ -57,68 +109,120 @@ NPUArray All(const NPUArray& x, const std::vector<int64_t>& dim, bool keepdims) 
         &executor
     );
     if (error != ACL_SUCCESS) {
-        throw std::runtime_error(fmt::format("All: get workspace size failed, error={}", error));
+        aclDestroyIntArray(aclDim);
+        throw std::runtime_error("[logic.cpp](All) aclnnAllGetWorkspaceSize failed, error=" + std::to_string(error));
     }
 
     if (workspaceSize > 0) {
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
-            throw std::runtime_error(fmt::format("All: malloc workspace failed, error={}", error));
+            aclDestroyIntArray(aclDim);
+            throw std::runtime_error("[logic.cpp](All) aclrtMalloc failed, error=" + std::to_string(error));
         }
     }
 
-    error = aclrtCreateStream(&stream);
-    if (error != ACL_SUCCESS || stream == nullptr) {
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr); 
-        throw std::runtime_error(fmt::format("All: create stream failed, error={}", error));
-    }
-
-    error = aclnnAll(workspaceAddr, workspaceSize, executor, stream);
+    error = aclnnAll(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        aclrtDestroyStream(stream);
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-        throw std::runtime_error(fmt::format("All: computation failed, error={}", error));
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        aclDestroyIntArray(aclDim);
+        throw std::runtime_error("[logic.cpp](All) aclnnAll failed, error=" + std::to_string(error));
     }
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        aclrtDestroyStream(stream);
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-        throw std::runtime_error(fmt::format("All: sync device failed, error={}", error));
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        aclDestroyIntArray(aclDim);
+        throw std::runtime_error("[logic.cpp](All) sync device failed, error=" + std::to_string(error));
     }
 
-    aclrtDestroyStream(stream);
-    if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
+    aclDestroyIntArray(aclDim);
 
     return result;
 }
 
+/// Reduce array by logical OR operation over all elements.
+NPUArray Any(const NPUArray& x) {
+    auto result = NPUArray({}, ACL_BOOL);
 
-/**
- * @brief Reduce array by logical OR operation over specified dimensions.
- * 
- * Equivalent to numpy.any(x, axis=dim, keepdims=keepdims), returns True if any element along the specified dimensions is True.
- * 
- * @param x NPUArray, input array (boolean type: ACL_BOOL)
- * @param dim std::vector<int64_t>, dimensions to reduce
- * @param keepdims bool, whether to keep reduced dimensions with size 1
- * @return NPUArray Reduced boolean array
- */
+    uint64_t workspaceSize = 0;
+    aclOpExecutor* executor = nullptr;
+    void* workspaceAddr = nullptr;
+
+    // dim=[] (全局 reduce)
+    aclIntArray* aclDim = aclCreateIntArray(nullptr, 0);
+    if (!aclDim) {
+        throw std::runtime_error("[logic.cpp](Any) failed to create empty aclIntArray");
+    }
+
+    auto error = aclnnAnyGetWorkspaceSize(
+        x.tensorPtr,
+        aclDim,
+        false,  // keepdims = false
+        result.tensorPtr,
+        &workspaceSize,
+        &executor
+    );
+    if (error != ACL_SUCCESS) {
+        aclDestroyIntArray(aclDim);
+        throw std::runtime_error("[logic.cpp](Any) aclnnAnyGetWorkspaceSize failed, error=" + std::to_string(error));
+    }
+
+    if (workspaceSize > 0) {
+        error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
+        if (error != ACL_SUCCESS) {
+            aclDestroyIntArray(aclDim);
+            throw std::runtime_error("[logic.cpp](Any) aclrtMalloc failed, error=" + std::to_string(error));
+        }
+    }
+
+    error = aclnnAny(workspaceAddr, workspaceSize, executor, nullptr);
+    if (error != ACL_SUCCESS) {
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        aclDestroyIntArray(aclDim);
+        throw std::runtime_error("[logic.cpp](Any) aclnnAny failed, error=" + std::to_string(error));
+    }
+
+    error = aclrtSynchronizeDevice();
+    if (error != ACL_SUCCESS) {
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        aclDestroyIntArray(aclDim);
+        throw std::runtime_error("[logic.cpp](Any) sync device failed, error=" + std::to_string(error));
+    }
+
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
+    aclDestroyIntArray(aclDim);
+
+    return result;
+}
+
+/// Reduce array by logical OR operation over specified dimensions.
 NPUArray Any(const NPUArray& x, const std::vector<int64_t>& dim, bool keepdims) {
     auto result = NPUArray({}, ACL_BOOL);
 
     uint64_t workspaceSize = 0;
     aclOpExecutor* executor = nullptr;
     void* workspaceAddr = nullptr;
-    aclrtStream stream = nullptr;
-    auto error = ACL_SUCCESS;
 
+    // 构造 dim 数组
     aclIntArray* aclDim = aclCreateIntArray(dim.data(), dim.size());
-    if (aclDim == nullptr) {
-        throw std::runtime_error("Any: failed to create aclIntArray");
+    if (!aclDim) {
+        throw std::runtime_error("[logic.cpp](Any) failed to create aclIntArray");
     }
 
-    error = aclnnAnyGetWorkspaceSize(
+    auto error = aclnnAnyGetWorkspaceSize(
         x.tensorPtr,
         aclDim,
         keepdims,
@@ -127,547 +231,479 @@ NPUArray Any(const NPUArray& x, const std::vector<int64_t>& dim, bool keepdims) 
         &executor
     );
     if (error != ACL_SUCCESS) {
-        throw std::runtime_error(fmt::format("Any: get workspace size failed, error={}", error));
+        aclDestroyIntArray(aclDim);
+        throw std::runtime_error("[logic.cpp](Any) aclnnAnyGetWorkspaceSize failed, error=" + std::to_string(error));
     }
 
     if (workspaceSize > 0) {
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
-            throw std::runtime_error(fmt::format("Any: malloc workspace failed, error={}", error));
+            aclDestroyIntArray(aclDim);
+            throw std::runtime_error("[logic.cpp](Any) aclrtMalloc failed, error=" + std::to_string(error));
         }
     }
 
-    error = aclrtCreateStream(&stream);
-    if (error != ACL_SUCCESS || stream == nullptr) {
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr); 
-        throw std::runtime_error(fmt::format("Any: create stream failed, error={}", error));
-    }
-
-    error = aclnnAny(workspaceAddr, workspaceSize, executor, stream);
+    error = aclnnAny(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        aclrtDestroyStream(stream);
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-        throw std::runtime_error(fmt::format("Any: computation failed, error={}", error));
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        aclDestroyIntArray(aclDim);
+        throw std::runtime_error("[logic.cpp](Any) aclnnAny failed, error=" + std::to_string(error));
     }
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        aclrtDestroyStream(stream);
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-        throw std::runtime_error(fmt::format("Any: sync device failed, error={}", error));
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        aclDestroyIntArray(aclDim);
+        throw std::runtime_error("[logic.cpp](Any) sync device failed, error=" + std::to_string(error));
     }
 
-    aclrtDestroyStream(stream);
-    if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
+    aclDestroyIntArray(aclDim);
 
     return result;
 }
 
-
-/**
- * @brief Test element-wise for finite values (not inf, -inf, or NaN).
- * 
- * Equivalent to numpy.isfinite(x), returns True for elements that are finite (not inf, -inf, or NaN).
- * Only supports floating-point input arrays.
- * 
- * @param x NPUArray, input array (floating-point type: ACL_FLOAT/ACL_DOUBLE)
- * @return NPUArray Boolean array (same shape as x), True if element is finite
- */
+/// Check element-wise finiteness of the input array.
 NPUArray IsFinite(const NPUArray& x) {
-    // 输入类型校验
-    if (x.aclDtype != ACL_FLOAT && x.aclDtype != ACL_DOUBLE) {
-        throw std::invalid_argument(fmt::format(
-            "IsFinite: unsupported dtype={}, only float/double allowed (finite check requires floating-point)", x.dtype));
-    }
-
-    // 初始化布尔型结果
+    // 输出布尔数组，shape 与输入一致
     auto result = NPUArray(x.shape, ACL_BOOL);
-    
-    // 变量声明
+
     uint64_t workspaceSize = 0;
     aclOpExecutor* executor = nullptr;
     void* workspaceAddr = nullptr;
-    aclrtStream stream = nullptr;
-    auto error = ACL_SUCCESS;
 
-    // 1. 获取工作空间大小与执行器
-    error = aclnnIsFiniteGetWorkspaceSize(x.tensorPtr, result.tensorPtr, &workspaceSize, &executor);
+    // 获取 workspace 大小 & 执行器（按 NNOP 两段式）
+    auto error = aclnnIsFiniteGetWorkspaceSize(
+        x.tensorPtr,
+        result.tensorPtr,
+        &workspaceSize,
+        &executor
+    );
     if (error != ACL_SUCCESS) {
-        throw std::runtime_error(fmt::format("IsFinite: get workspace size failed, error={}", error));
+        throw std::runtime_error(fmt::format(
+            "[logic.cpp](IsFinite) GetWorkspaceSize failed, error={}, dtype={}",
+            error, std::string(py::str(py::cast<py::object>(x.dtype)))));
     }
 
-    // 2. 分配工作空间
+    // 分配 workspace
     if (workspaceSize > 0) {
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
-            aclDestroyAclOpExecutor(executor);  // 释放已创建执行器，避免资源泄漏
-            throw std::runtime_error(fmt::format("IsFinite: malloc workspace failed, error={}", error));
+            throw std::runtime_error(fmt::format(
+                "[logic.cpp](IsFinite) aclrtMalloc failed, error={}", error));
         }
     }
 
-    // 3. 创建自定义执行流
-    error = aclrtCreateStream(&stream);
-    if (error != ACL_SUCCESS || stream == nullptr) {
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);  // 释放已分配空间
-        aclDestroyAclOpExecutor(executor);                          // 释放执行器
-        throw std::runtime_error(fmt::format("IsFinite: create stream failed, error={}", error));
-    }
-
-    // 4. 执行有限值判断计算（排除inf、-inf、NaN，标记有限值为True）
-    error = aclnnIsFinite(workspaceAddr, workspaceSize, executor, stream);
+    // 执行计算
+    error = aclnnIsFinite(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        aclrtDestroyStream(stream);       // 释放流
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);  // 释放空间
-        aclDestroyAclOpExecutor(executor);                          // 释放执行器
-        throw std::runtime_error(fmt::format("IsFinite: computation failed, error={}", error));
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        throw std::runtime_error(fmt::format(
+            "[logic.cpp](IsFinite) computation failed, error={}", error));
     }
 
-    // 5. 同步设备（确保计算完全完成，避免结果未就绪，与已有函数同步逻辑一致）
+    // 同步设备
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        aclrtDestroyStream(stream);       // 释放流
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);  // 释放空间
-        aclDestroyAclOpExecutor(executor);                          // 释放执行器
-        throw std::runtime_error(fmt::format("IsFinite: sync device failed, error={}", error));
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        throw std::runtime_error(fmt::format(
+            "[logic.cpp](IsFinite) sync device failed, error={}", error));
     }
 
-    // 6. 释放所有资源（按“流→工作空间→执行器”顺序，避免资源依赖导致的释放异常）
-    aclrtDestroyStream(stream);
-    if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-    aclDestroyAclOpExecutor(executor);
-
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     return result;
 }
 
-
-/**
- * @brief Test element-wise for infinity (positive or negative).
- * 
- * Equivalent to numpy.isinf(x), returns True for elements that are infinite (inf or -inf).
- * Only supports floating-point input arrays.
- * 
- * @param x NPUArray, input array (floating-point type: ACL_FLOAT/ACL_DOUBLE)
- * @return NPUArray Boolean array (same shape as x), True if element is infinite
- */
+/// Check element-wise infinity of the input array.
 NPUArray IsInf(const NPUArray& x) {
-    // 初始化布尔型结果
     auto result = NPUArray(x.shape, ACL_BOOL);
-    
-    // 变量声明
+
     uint64_t workspaceSize = 0;
     aclOpExecutor* executor = nullptr;
     void* workspaceAddr = nullptr;
-    aclrtStream stream = nullptr;
-    auto error = ACL_SUCCESS;
 
-    // 1. 获取工作空间大小与执行器（调用ACL无穷大判断接口）
-    error = aclnnIsInfGetWorkspaceSize(x.tensorPtr, result.tensorPtr, &workspaceSize, &executor);
+    auto error = aclnnIsInfGetWorkspaceSize(
+        x.tensorPtr,
+        result.tensorPtr,
+        &workspaceSize,
+        &executor
+    );
     if (error != ACL_SUCCESS) {
-        throw std::runtime_error(fmt::format("IsInf: get workspace size failed, error={}", error));
+        throw std::runtime_error(fmt::format(
+            "[logic.cpp](IsInf) GetWorkspaceSize failed, error={}, dtype={}",
+            error, std::string(py::str(py::cast<py::object>(x.dtype)))));
     }
 
-    // 2. 分配工作空间
     if (workspaceSize > 0) {
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
-            aclDestroyAclOpExecutor(executor);  // 释放已创建执行器
-            throw std::runtime_error(fmt::format("IsInf: malloc workspace failed, error={}", error));
+            throw std::runtime_error(fmt::format("[logic.cpp](IsInf) aclrtMalloc failed, error={}", error));
         }
     }
 
-    // 3. 创建自定义执行流
-    error = aclrtCreateStream(&stream);
-    if (error != ACL_SUCCESS || stream == nullptr) {
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);  // 释放已分配空间
-        aclDestroyAclOpExecutor(executor);                          // 释放执行器
-        throw std::runtime_error(fmt::format("IsInf: create stream failed, error={}", error));
-    }
-
-    // 4. 执行无穷大判断计算
-    error = aclnnIsInf(workspaceAddr, workspaceSize, executor, stream);
+    error = aclnnIsInf(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        aclrtDestroyStream(stream);       // 释放流
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);  // 释放空间
-        aclDestroyAclOpExecutor(executor);                          // 释放执行器
-        throw std::runtime_error(fmt::format("IsInf: computation failed, error={}", error));
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        throw std::runtime_error(fmt::format("[logic.cpp](IsInf) computation failed, error={}", error));
     }
+{
 
-    // 5. 同步设备（与Cumsum同步同步逻辑一致）
+}
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        aclrtDestroyStream(stream);       // 释放流
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);  // 释放空间
-        aclDestroyAclOpExecutor(executor);                          // 释放执行器
-        throw std::runtime_error(fmt::format("IsInf: sync device failed, error={}", error));
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        throw std::runtime_error(fmt::format("[logic.cpp](IsInf) sync device failed, error={}", error));
     }
 
-    // 6. 释放所有资源（顺序：流→工作空间→执行器）
-    aclrtDestroyStream(stream);
-    if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-    aclDestroyAclOpExecutor(executor);
-
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     return result;
 }
 
-
-/**
- * @brief Test element-wise for negative infinity (-inf).
- * 
- * Equivalent to numpy.isneginf(x), returns True for elements that are negative infinite (-inf).
- * Only supports floating-point input arrays.
- * 
- * @param x NPUArray, input array (floating-point type: ACL_FLOAT/ACL_DOUBLE)
- * @return NPUArray Boolean array (same shape as x), True if element is negative infinite
- */
+/// Test element-wise for negative infinity (-inf).
 NPUArray IsNegInf(const NPUArray& x) {
-    // 初始化布尔型结果
     auto result = NPUArray(x.shape, ACL_BOOL);
-    
-    // 变量声明
+
     uint64_t workspaceSize = 0;
     aclOpExecutor* executor = nullptr;
     void* workspaceAddr = nullptr;
     aclrtStream stream = nullptr;
-    auto error = ACL_SUCCESS;
 
-    // 1. 获取工作空间大小与执行器（调用ACL负无穷判断接口）
-    error = aclnnIsNegInfGetWorkspaceSize(x.tensorPtr, result.tensorPtr, &workspaceSize, &executor);
+    // 获取 workspace 大小与执行器
+    auto error = aclnnIsNegInfGetWorkspaceSize(x.tensorPtr, result.tensorPtr, &workspaceSize, &executor);
     if (error != ACL_SUCCESS) {
-        throw std::runtime_error(fmt::format("IsNegInf: get workspace size failed, error={}", error));
+        throw std::runtime_error(fmt::format("[logic.cpp](IsNegInf) GetWorkspaceSize failed, error={}", error));
     }
 
-    // 2. 分配工作空间
+    // 分配 workspace
     if (workspaceSize > 0) {
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
-            aclDestroyAclOpExecutor(executor);
-            throw std::runtime_error(fmt::format("IsNegInf: malloc workspace failed, error={}", error));
+            throw std::runtime_error(fmt::format("[logic.cpp](IsNegInf) aclrtMalloc failed, error={}", error));
         }
     }
 
-    // 3. 创建自定义执行流
+    // 创建执行流
     error = aclrtCreateStream(&stream);
     if (error != ACL_SUCCESS || stream == nullptr) {
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-        aclDestroyAclOpExecutor(executor);
-        throw std::runtime_error(fmt::format("IsNegInf: create stream failed, error={}", error));
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        throw std::runtime_error(fmt::format("[logic.cpp](IsNegInf) create stream failed, error={}", error));
     }
 
-    // 4. 执行负无穷判断计算
+    // 执行计算
     error = aclnnIsNegInf(workspaceAddr, workspaceSize, executor, stream);
     if (error != ACL_SUCCESS) {
         aclrtDestroyStream(stream);
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-        aclDestroyAclOpExecutor(executor);
-        throw std::runtime_error(fmt::format("IsNegInf: computation failed, error={}", error));
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        throw std::runtime_error(fmt::format("[logic.cpp](IsNegInf) computation failed, error={}", error));
     }
 
-    // 5. 同步设备
+    // 同步设备
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
         aclrtDestroyStream(stream);
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-        aclDestroyAclOpExecutor(executor);
-        throw std::runtime_error(fmt::format("IsNegInf: sync device failed, error={}", error));
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        throw std::runtime_error(fmt::format("[logic.cpp](IsNegInf) sync device failed, error={}", error));
     }
 
-    // 6. 释放所有资源
+    // 释放资源
     aclrtDestroyStream(stream);
-    if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-    aclDestroyAclOpExecutor(executor);
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }{
 
+    }
     return result;
 }
 
-
-/**
- * @brief Test element-wise for positive infinity (inf).
- * 
- * Equivalent to numpy.isposinf(x), returns True for elements that are positive infinite (inf).
- * Only supports floating-point input arrays.
- * 
- * @param x NPUArray, input array (floating-point type: ACL_FLOAT/ACL_DOUBLE)
- * @return NPUArray Boolean array (same shape as x), True if element is positive infinite
- */
+/// Test element-wise for positive infinity (+inf).
 NPUArray IsPosInf(const NPUArray& x) {
     auto result = NPUArray(x.shape, ACL_BOOL);
-    
+
     uint64_t workspaceSize = 0;
     aclOpExecutor* executor = nullptr;
     void* workspaceAddr = nullptr;
     aclrtStream stream = nullptr;
-    auto error = ACL_SUCCESS;
 
-    error = aclnnIsPosInfGetWorkspaceSize(x.tensorPtr, result.tensorPtr, &workspaceSize, &executor);
+    // 获取 workspace 大小与执行器
+    auto error = aclnnIsPosInfGetWorkspaceSize(x.tensorPtr, result.tensorPtr, &workspaceSize, &executor);
     if (error != ACL_SUCCESS) {
-        throw std::runtime_error(fmt::format("IsPosInf: get workspace size failed, error={}", error));
+        throw std::runtime_error(fmt::format("[logic.cpp](IsPosInf) GetWorkspaceSize failed, error={}", error));
     }
 
+    // 分配 workspace
     if (workspaceSize > 0) {
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
-            throw std::runtime_error(fmt::format("IsPosInf: malloc workspace failed, error={}", error));
+            throw std::runtime_error(fmt::format("[logic.cpp](IsPosInf) aclrtMalloc failed, error={}", error));
         }
     }
-    
+
+    // 创建执行流
     error = aclrtCreateStream(&stream);
     if (error != ACL_SUCCESS || stream == nullptr) {
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-        throw std::runtime_error(fmt::format("IsPosInf: create stream failed, error={}", error));
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        throw std::runtime_error(fmt::format("[logic.cpp](IsPosInf) create stream failed, error={}", error));
     }
 
+    // 执行计算
     error = aclnnIsPosInf(workspaceAddr, workspaceSize, executor, stream);
     if (error != ACL_SUCCESS) {
         aclrtDestroyStream(stream);
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-        throw std::runtime_error(fmt::format("IsPosInf: computation failed, error={}", error));
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        throw std::runtime_error(fmt::format("[logic.cpp](IsPosInf) computation failed, error={}", error));
     }
 
-    error = aclrtSynchronizeStream(stream);
+    // 同步设备（保持和其它算子一致）
+    error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
         aclrtDestroyStream(stream);
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-        throw std::runtime_error(fmt::format("IsPosInf: sync device failed, error={}", error));
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        throw std::runtime_error(fmt::format("[logic.cpp](IsPosInf) sync device failed, error={}", error));
     }
 
+    // 释放资源
     aclrtDestroyStream(stream);
-    if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     return result;
 }
 
-
-/**
- * @brief Element-wise logical AND operation between two boolean arrays.
- * 
- * Equivalent to numpy.logical_and(x, y), performs element-wise logical AND operation.
- * Input arrays x and y must have the same shape.
- * 
- * @param x NPUArray, first input boolean array (ACL_BOOL)
- * @param y NPUArray, second input boolean array (ACL_BOOL)
- */
+/// Perform element-wise logical AND between two boolean arrays.
 NPUArray LogicalAnd(const NPUArray& x, const NPUArray& y) {
-    auto result = NPUArray(x.shape, ACL_BOOL);
-    
+    auto result = NPUArray(GetBroadcastShape(x, y), ACL_BOOL);
+
     uint64_t workspaceSize = 0;
     aclOpExecutor* executor = nullptr;
     void* workspaceAddr = nullptr;
-    aclrtStream stream = nullptr;
-    auto error = ACL_SUCCESS;
 
-    error = aclnnLogicalAndGetWorkspaceSize(x.tensorPtr, y.tensorPtr, result.tensorPtr, &workspaceSize, &executor);
+    auto error = aclnnLogicalAndGetWorkspaceSize(
+        x.tensorPtr, y.tensorPtr, result.tensorPtr,
+        &workspaceSize, &executor
+    );
     if (error != ACL_SUCCESS) {
-        throw std::runtime_error(fmt::format("LogicalAnd: get workspace size failed, error={}", error));
+        throw std::runtime_error(fmt::format(
+            "[logic.cpp](LogicalAnd) GetWorkspaceSize failed, error={}, dtype_x={}, dtype_y={}",
+            error,
+            std::string(py::str(py::cast<py::object>(x.dtype))),
+            std::string(py::str(py::cast<py::object>(y.dtype)))
+        ));
     }
 
     if (workspaceSize > 0) {
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
-            throw std::runtime_error(fmt::format("LogicalAnd: malloc workspace failed, error={}", error));
+            throw std::runtime_error(fmt::format("[logic.cpp](LogicalAnd) aclrtMalloc failed, error={}", error));
         }
     }
-    
-    error = aclrtCreateStream(&stream);
-    if (error != ACL_SUCCESS || stream == nullptr) {
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-        throw std::runtime_error(fmt::format("LogicalAnd: create stream failed, error={}", error));
-    }
 
-    error = aclnnLogicalAnd(workspaceAddr, workspaceSize, executor, stream);
+    error = aclnnLogicalAnd(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        aclrtDestroyStream(stream);
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-        throw std::runtime_error(fmt::format("LogicalAnd: computation failed, error={}", error));
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        throw std::runtime_error(fmt::format("[logic.cpp](LogicalAnd) computation failed, error={}", error));
     }
 
-    error = aclrtSynchronizeStream(stream);
+    error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        aclrtDestroyStream(stream);
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-        throw std::runtime_error(fmt::format("LogicalAnd: sync device failed, error={}", error));
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        throw std::runtime_error(fmt::format("[logic.cpp](LogicalAnd) sync device failed, error={}", error));
     }
 
-    aclrtDestroyStream(stream);
-    if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     return result;
 }
 
-
-/**
- * @brief Element-wise logical OR operation between two boolean arrays.
- * 
- * Equivalent to numpy.logical_or(x, y), performs element-wise logical OR operation.
- * Input arrays x and y must have the same shape.
- * 
- * @param x NPUArray, first input boolean array (ACL_BOOL)
- * @param y NPUArray, second input boolean array (ACL_BOOL)
- */
+/// Perform element-wise logical OR between two boolean arrays.
 NPUArray LogicalOr(const NPUArray& x, const NPUArray& y) {
-    auto result = NPUArray(x.shape, ACL_BOOL);
-    
+    auto result = NPUArray(GetBroadcastShape(x, y), ACL_BOOL);
+
     uint64_t workspaceSize = 0;
     aclOpExecutor* executor = nullptr;
     void* workspaceAddr = nullptr;
-    aclrtStream stream = nullptr;
-    auto error = ACL_SUCCESS;
 
-    error = aclnnLogicalOrGetWorkspaceSize(x.tensorPtr, y.tensorPtr, result.tensorPtr, &workspaceSize, &executor);
+    auto error = aclnnLogicalOrGetWorkspaceSize(
+        x.tensorPtr, y.tensorPtr, result.tensorPtr,
+        &workspaceSize, &executor
+    );
     if (error != ACL_SUCCESS) {
-        throw std::runtime_error(fmt::format("LogicalOr: get workspace size failed, error={}", error));
+        throw std::runtime_error(fmt::format(
+            "[logic.cpp](LogicalOr) GetWorkspaceSize failed, error={}, dtype_x={}, dtype_y={}",
+            error,
+            std::string(py::str(py::cast<py::object>(x.dtype))),
+            std::string(py::str(py::cast<py::object>(y.dtype)))
+        ));
     }
 
     if (workspaceSize > 0) {
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
-            throw std::runtime_error(fmt::format("LogicalOr: malloc workspace failed, error={}", error));
+            throw std::runtime_error(fmt::format("[logic.cpp](LogicalOr) aclrtMalloc failed, error={}", error));
         }
     }
-    
-    error = aclrtCreateStream(&stream);
-    if (error != ACL_SUCCESS || stream == nullptr) {
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-        throw std::runtime_error(fmt::format("LogicalOr: create stream failed, error={}", error));
-    }
 
-    error = aclnnLogicalOr(workspaceAddr, workspaceSize, executor, stream);
+    error = aclnnLogicalOr(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        aclrtDestroyStream(stream);
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-        throw std::runtime_error(fmt::format("LogicalOr: computation failed, error={}", error));
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        throw std::runtime_error(fmt::format("[logic.cpp](LogicalOr) computation failed, error={}", error));
     }
 
-    error = aclrtSynchronizeStream(stream);
+    error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        aclrtDestroyStream(stream);
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-        throw std::runtime_error(fmt::format("LogicalOr: sync device failed, error={}", error));
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        throw std::runtime_error(fmt::format("[logic.cpp](LogicalOr) sync device failed, error={}", error));
     }
 
-    aclrtDestroyStream(stream);
-    if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     return result;
 }
 
-
-/**
- * @brief Element-wise logical NOT operation on a boolean array.
- * 
- * Equivalent to numpy.logical_not(x), performs element-wise logical NOT operation.
- * 
- * @param x NPUArray, input boolean array (ACL_BOOL)
- * @return NPUArray Resulting boolean array after NOT operation
- */
+/// Perform element-wise logical NOT on a boolean array.
 NPUArray LogicalNot(const NPUArray& x) {
     auto result = NPUArray(x.shape, ACL_BOOL);
-    
+
     uint64_t workspaceSize = 0;
     aclOpExecutor* executor = nullptr;
     void* workspaceAddr = nullptr;
-    aclrtStream stream = nullptr;
-    auto error = ACL_SUCCESS;
 
-    error = aclnnLogicalNotGetWorkspaceSize(x.tensorPtr, result.tensorPtr, &workspaceSize, &executor);
+    auto error = aclnnLogicalNotGetWorkspaceSize(
+        x.tensorPtr, result.tensorPtr,
+        &workspaceSize, &executor
+    );
     if (error != ACL_SUCCESS) {
-        throw std::runtime_error(fmt::format("LogicalNot: get workspace size failed, error={}", error));
+        throw std::runtime_error(fmt::format(
+            "[logic.cpp](LogicalNot) GetWorkspaceSize failed, error={}, dtype={}",
+            error,
+            std::string(py::str(py::cast<py::object>(x.dtype)))
+        ));
     }
 
     if (workspaceSize > 0) {
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
-            throw std::runtime_error(fmt::format("LogicalNot: malloc workspace failed, error={}", error));
+            throw std::runtime_error(fmt::format("[logic.cpp](LogicalNot) aclrtMalloc failed, error={}", error));
         }
     }
-    
-    error = aclrtCreateStream(&stream);
-    if (error != ACL_SUCCESS || stream == nullptr) {
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-        throw std::runtime_error(fmt::format("LogicalNot: create stream failed, error={}", error));
-    }
 
-    error = aclnnLogicalNot(workspaceAddr, workspaceSize, executor, stream);
+    error = aclnnLogicalNot(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        aclrtDestroyStream(stream);
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-        throw std::runtime_error(fmt::format("LogicalNot: computation failed, error={}", error));
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        throw std::runtime_error(fmt::format("[logic.cpp](LogicalNot) computation failed, error={}", error));
     }
 
-    error = aclrtSynchronizeStream(stream);
+    error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        aclrtDestroyStream(stream);
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-        throw std::runtime_error(fmt::format("LogicalNot: sync device failed, error={}", error));
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        throw std::runtime_error(fmt::format("[logic.cpp](LogicalNot) sync device failed, error={}", error));
+    }{
+     }
+
+
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
     }
-
-    aclrtDestroyStream(stream);
-    if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-
     return result;
 }
 
-
-/**
- * @brief Element-wise logical XOR operation between two boolean arrays.
- * 
- * Equivalent to numpy.logical_xor(x, y), performs element-wise logical XOR operation.
- * Input arrays x and y must have the same shape.
- * 
- * @param x NPUArray, first input boolean array (ACL_BOOL)
- * @param y NPUArray, second input boolean array (ACL_BOOL)
- */
+/// Perform element-wise logical XOR between two boolean arrays.
 NPUArray LogicalXor(const NPUArray& x, const NPUArray& y) {
-    auto result = NPUArray(x.shape, ACL_BOOL);
-    
+    auto result = NPUArray(GetBroadcastShape(x, y), ACL_BOOL);
+
     uint64_t workspaceSize = 0;
     aclOpExecutor* executor = nullptr;
     void* workspaceAddr = nullptr;
-    aclrtStream stream = nullptr;
-    auto error = ACL_SUCCESS;
 
-    error = aclnnLogicalXorGetWorkspaceSize(x.tensorPtr, y.tensorPtr, result.tensorPtr, &workspaceSize, &executor);
+    auto error = aclnnLogicalXorGetWorkspaceSize(
+        x.tensorPtr, y.tensorPtr, result.tensorPtr,
+        &workspaceSize, &executor
+    );
     if (error != ACL_SUCCESS) {
-        throw std::runtime_error(fmt::format("LogicalXor: get workspace size failed, error={}", error));
+        throw std::runtime_error(fmt::format(
+            "[logic.cpp](LogicalXor) GetWorkspaceSize failed, error={}, dtype_x={}, dtype_y={}",
+            error,
+            std::string(py::str(py::cast<py::object>(x.dtype))),
+            std::string(py::str(py::cast<py::object>(y.dtype)))
+        ));
     }
 
     if (workspaceSize > 0) {
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
-            throw std::runtime_error(fmt::format("LogicalXor: malloc workspace failed, error={}", error));
+            throw std::runtime_error(fmt::format("[logic.cpp](LogicalXor) aclrtMalloc failed, error={}", error));
         }
     }
-    
-    error = aclrtCreateStream(&stream);
-    if (error != ACL_SUCCESS || stream == nullptr) {
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-        throw std::runtime_error(fmt::format("LogicalXor: create stream failed, error={}", error));
-    }
 
-    error = aclnnLogicalXor(workspaceAddr, workspaceSize, executor, stream);
+    error = aclnnLogicalXor(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        aclrtDestroyStream(stream);
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-        throw std::runtime_error(fmt::format("LogicalXor: computation failed, error={}", error));
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        throw std::runtime_error(fmt::format("[logic.cpp](LogicalXor) computation failed, error={}", error));
     }
 
-    error = aclrtSynchronizeStream(stream);
+    error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        aclrtDestroyStream(stream);
-        if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-        throw std::runtime_error(fmt::format("LogicalXor: sync device failed, error={}", error));
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        throw std::runtime_error(fmt::format("[logic.cpp](LogicalXor) sync device failed, error={}", error));
     }
 
-    aclrtDestroyStream(stream);
-    if (workspaceAddr != nullptr) aclrtFree(workspaceAddr);
-
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     return result;
 }
 
-/**
- * @brief Perform element-wise greater-than comparison between two arrays.
- */
-NPUArray greater(const NPUArray& x1, const NPUArray& x2, py::dtype dtype) {
-    auto out = NPUArray(GetBroadcastShape(x1, x2), dtype);
+/// Element-wise greater-than comparison between two arrays.
+NPUArray greater(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> dtype) {
+    auto out = NPUArray(GetBroadcastShape(x1, x2),
+                        dtype.value_or(py::dtype::of<bool>()));
 
     uint64_t workspaceSize = 0;
     aclOpExecutor* executor = nullptr;
@@ -675,58 +711,74 @@ NPUArray greater(const NPUArray& x1, const NPUArray& x2, py::dtype dtype) {
         x1.tensorPtr, x2.tensorPtr, out.tensorPtr, &workspaceSize, &executor
     );
     if (error != ACL_SUCCESS) {
-        std::string error_msg = "[logic.cpp](greater) aclnnGtTensorGetWorkspaceSize error = " + std::to_string(error);
+        std::string error_msg = "[logic.cpp](greater) aclnnGtTensorGetWorkspaceSize error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
-        if (detailed_msg && std::strlen(detailed_msg) > 0) error_msg += " - " + std::string(detailed_msg);
+        if (detailed_msg && std::strlen(detailed_msg) > 0)
+            error_msg += " - " + std::string(detailed_msg);
         throw std::runtime_error(error_msg);
     }
-    if (workspaceSize < 0) throw std::runtime_error("[logic.cpp](greater) Invalid workspaceSize: " + std::to_string(workspaceSize));
+    if (workspaceSize < 0) {
+        throw std::runtime_error("[logic.cpp](greater) Invalid workspaceSize: "
+                                 + std::to_string(workspaceSize));
+    }
 
     void* workspaceAddr = nullptr;
     if (workspaceSize > 0) {
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
-            std::string error_msg = "[logic.cpp](greater) aclrtMalloc error = " + std::to_string(error);
+            std::string error_msg = "[logic.cpp](greater) aclrtMalloc error = "
+                                    + std::to_string(error);
             const char* detailed_msg = aclGetRecentErrMsg();
-            if (detailed_msg && std::strlen(detailed_msg) > 0) error_msg += " - " + std::string(detailed_msg);
+            if (detailed_msg && std::strlen(detailed_msg) > 0)
+                error_msg += " - " + std::string(detailed_msg);
             throw std::runtime_error(error_msg);
         }
     }
 
     error = aclnnGtTensor(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        std::string error_msg = "[logic.cpp](greater) aclnnGtTensor error = " + std::to_string(error);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        std::string error_msg = "[logic.cpp](greater) aclnnGtTensor error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
-        if (detailed_msg && std::strlen(detailed_msg) > 0) error_msg += " - " + std::string(detailed_msg);
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (detailed_msg && std::strlen(detailed_msg) > 0)
+            error_msg += " - " + std::string(detailed_msg);
         throw std::runtime_error(error_msg);
     }
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        std::string error_msg = "[logic.cpp](greater) aclrtSynchronizeDevice error = " + std::to_string(error);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }    
+        std::string error_msg = "[logic.cpp](greater) aclrtSynchronizeDevice error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
-        if (detailed_msg && std::strlen(detailed_msg) > 0) error_msg += " - " + std::string(detailed_msg);
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (detailed_msg && std::strlen(detailed_msg) > 0)
+            error_msg += " - " + std::string(detailed_msg);
         throw std::runtime_error(error_msg);
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
-
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     return out;
 }
 
-/**
- * @brief Perform element-wise greater-than comparison between an array and a scalar.
- */
-NPUArray greater(const NPUArray& x1, const py::object& scalar, py::dtype dtype) {
-    auto out = NPUArray(x1.shape, dtype);
+/// Element-wise greater-than comparison between an array and a scalar.
+NPUArray greater(const NPUArray& x1, const py::object& scalar, std::optional<py::dtype> dtype) {
+    auto out = NPUArray(x1.shape,
+                        dtype.value_or(py::dtype::of<bool>()));
 
     double scalar_val = 0;
     try {
         scalar_val = py::cast<double>(scalar);
     } catch (const py::cast_error& e) {
-        throw std::runtime_error("[logic.cpp](greater) Invalid scalar type: " + std::string(e.what()));
+        throw std::runtime_error("[logic.cpp](greater) Invalid scalar type: "
+                                 + std::string(e.what()));
     }
     aclScalar* acl_scalar = aclCreateScalar(&scalar_val, x1.aclDtype);
 
@@ -737,14 +789,17 @@ NPUArray greater(const NPUArray& x1, const py::object& scalar, py::dtype dtype) 
     );
     if (error != ACL_SUCCESS) {
         aclDestroyScalar(acl_scalar);
-        std::string error_msg = "[logic.cpp](greater) aclnnGtScalarGetWorkspaceSize error = " + std::to_string(error);
+        std::string error_msg = "[logic.cpp](greater) aclnnGtScalarGetWorkspaceSize error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
-        if (detailed_msg && std::strlen(detailed_msg) > 0) error_msg += " - " + std::string(detailed_msg);
+        if (detailed_msg && std::strlen(detailed_msg) > 0)
+            error_msg += " - " + std::string(detailed_msg);
         throw std::runtime_error(error_msg);
     }
     if (workspaceSize < 0) {
         aclDestroyScalar(acl_scalar);
-        throw std::runtime_error("[logic.cpp](greater) Invalid workspaceSize: " + std::to_string(workspaceSize));
+        throw std::runtime_error("[logic.cpp](greater) Invalid workspaceSize: "
+                                 + std::to_string(workspaceSize));
     }
 
     void* workspaceAddr = nullptr;
@@ -752,44 +807,60 @@ NPUArray greater(const NPUArray& x1, const py::object& scalar, py::dtype dtype) 
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
             aclDestroyScalar(acl_scalar);
-            std::string error_msg = "[logic.cpp](greater) aclrtMalloc error = " + std::to_string(error);
+            std::string error_msg = "[logic.cpp](greater) aclrtMalloc error = "
+                                    + std::to_string(error);
             const char* detailed_msg = aclGetRecentErrMsg();
-            if (detailed_msg && std::strlen(detailed_msg) > 0) error_msg += " - " + std::string(detailed_msg);
+            if (detailed_msg && std::strlen(detailed_msg) > 0)
+                error_msg += " - " + std::string(detailed_msg);
             throw std::runtime_error(error_msg);
         }
     }
 
     error = aclnnGtScalar(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
-        aclDestroyScalar(acl_scalar);
-        std::string error_msg = "[logic.cpp](greater) aclnnGtScalar error = " + std::to_string(error);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        {
+            aclDestroyScalar(acl_scalar);
+        }
+        std::string error_msg = "[logic.cpp](greater) aclnnGtScalar error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
-        if (detailed_msg && std::strlen(detailed_msg) > 0) error_msg += " - " + std::string(detailed_msg);
+        if (detailed_msg && std::strlen(detailed_msg) > 0)
+            error_msg += " - " + std::string(detailed_msg);
         throw std::runtime_error(error_msg);
     }
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
-        aclDestroyScalar(acl_scalar);
-        std::string error_msg = "[logic.cpp](greater) aclrtSynchronizeDevice error = " + std::to_string(error);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        {
+            aclDestroyScalar(acl_scalar);
+        }
+        std::string error_msg = "[logic.cpp](greater) aclrtSynchronizeDevice error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
-        if (detailed_msg && std::strlen(detailed_msg) > 0) error_msg += " - " + std::string(detailed_msg);
+        if (detailed_msg && std::strlen(detailed_msg) > 0)
+            error_msg += " - " + std::string(detailed_msg);
         throw std::runtime_error(error_msg);
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
-    aclDestroyScalar(acl_scalar);
-
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
+    {
+        aclDestroyScalar(acl_scalar);
+    }
     return out;
 }
 
-/**
- * @brief Perform element-wise greater-than-or-equal comparison between two arrays.
- */
-NPUArray greater_equal(const NPUArray& x1, const NPUArray& x2, py::dtype dtype) {
-    auto out = NPUArray(GetBroadcastShape(x1, x2), dtype);
+/// Element-wise greater-than-or-equal comparison between two arrays.
+NPUArray greater_equal(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> dtype) {
+    auto out = NPUArray(GetBroadcastShape(x1, x2),
+                        dtype.value_or(py::dtype::of<bool>()));
 
     uint64_t workspaceSize = 0;
     aclOpExecutor* executor = nullptr;
@@ -797,58 +868,74 @@ NPUArray greater_equal(const NPUArray& x1, const NPUArray& x2, py::dtype dtype) 
         x1.tensorPtr, x2.tensorPtr, out.tensorPtr, &workspaceSize, &executor
     );
     if (error != ACL_SUCCESS) {
-        std::string error_msg = "[logic.cpp](greater_equal) aclnnGeTensorGetWorkspaceSize error = " + std::to_string(error);
+        std::string error_msg = "[logic.cpp](greater_equal) aclnnGeTensorGetWorkspaceSize error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
-        if (detailed_msg && std::strlen(detailed_msg) > 0) error_msg += " - " + std::string(detailed_msg);
+        if (detailed_msg && std::strlen(detailed_msg) > 0)
+            error_msg += " - " + std::string(detailed_msg);
         throw std::runtime_error(error_msg);
     }
-    if (workspaceSize < 0) throw std::runtime_error("[logic.cpp](greater_equal) Invalid workspaceSize: " + std::to_string(workspaceSize));
+    if (workspaceSize < 0) {
+        throw std::runtime_error("[logic.cpp](greater_equal) Invalid workspaceSize: "
+                                 + std::to_string(workspaceSize));
+    }
 
     void* workspaceAddr = nullptr;
     if (workspaceSize > 0) {
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
-            std::string error_msg = "[logic.cpp](greater_equal) aclrtMalloc error = " + std::to_string(error);
+            std::string error_msg = "[logic.cpp](greater_equal) aclrtMalloc error = "
+                                    + std::to_string(error);
             const char* detailed_msg = aclGetRecentErrMsg();
-            if (detailed_msg && std::strlen(detailed_msg) > 0) error_msg += " - " + std::string(detailed_msg);
+            if (detailed_msg && std::strlen(detailed_msg) > 0)
+                error_msg += " - " + std::string(detailed_msg);
             throw std::runtime_error(error_msg);
         }
     }
 
     error = aclnnGeTensor(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
-        std::string error_msg = "[logic.cpp](greater_equal) aclnnGeTensor error = " + std::to_string(error);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        std::string error_msg = "[logic.cpp](greater_equal) aclnnGeTensor error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
-        if (detailed_msg && std::strlen(detailed_msg) > 0) error_msg += " - " + std::string(detailed_msg);
+        if (detailed_msg && std::strlen(detailed_msg) > 0)
+            error_msg += " - " + std::string(detailed_msg);
         throw std::runtime_error(error_msg);
     }
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
-        std::string error_msg = "[logic.cpp](greater_equal) aclrtSynchronizeDevice error = " + std::to_string(error);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        std::string error_msg = "[logic.cpp](greater_equal) aclrtSynchronizeDevice error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
-        if (detailed_msg && std::strlen(detailed_msg) > 0) error_msg += " - " + std::string(detailed_msg);
+        if (detailed_msg && std::strlen(detailed_msg) > 0)
+            error_msg += " - " + std::string(detailed_msg);
         throw std::runtime_error(error_msg);
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
-
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     return out;
 }
 
-/**
- * @brief Perform element-wise greater-than-or-equal comparison between an array and a scalar.
- */
-NPUArray greater_equal(const NPUArray& x1, const py::object& scalar, py::dtype dtype) {
-    auto out = NPUArray(x1.shape, dtype);
+/// Element-wise greater-than-or-equal comparison between an array and a scalar.
+NPUArray greater_equal(const NPUArray& x1, const py::object& scalar, std::optional<py::dtype> dtype) {
+    auto out = NPUArray(x1.shape,
+                        dtype.value_or(py::dtype::of<bool>()));
 
     double scalar_val = 0;
     try {
         scalar_val = py::cast<double>(scalar);
     } catch (const py::cast_error& e) {
-        throw std::runtime_error("[logic.cpp](greater_equal) Invalid scalar type: " + std::string(e.what()));
+        throw std::runtime_error("[logic.cpp](greater_equal) Invalid scalar type: "
+                                 + std::string(e.what()));
     }
     aclScalar* acl_scalar = aclCreateScalar(&scalar_val, x1.aclDtype);
 
@@ -859,14 +946,17 @@ NPUArray greater_equal(const NPUArray& x1, const py::object& scalar, py::dtype d
     );
     if (error != ACL_SUCCESS) {
         aclDestroyScalar(acl_scalar);
-        std::string error_msg = "[logic.cpp](greater_equal) aclnnGeScalarGetWorkspaceSize error = " + std::to_string(error);
+        std::string error_msg = "[logic.cpp](greater_equal) aclnnGeScalarGetWorkspaceSize error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
-        if (detailed_msg && std::strlen(detailed_msg) > 0) error_msg += " - " + std::string(detailed_msg);
+        if (detailed_msg && std::strlen(detailed_msg) > 0)
+            error_msg += " - " + std::string(detailed_msg);
         throw std::runtime_error(error_msg);
     }
     if (workspaceSize < 0) {
         aclDestroyScalar(acl_scalar);
-        throw std::runtime_error("[logic.cpp](greater_equal) Invalid workspaceSize: " + std::to_string(workspaceSize));
+        throw std::runtime_error("[logic.cpp](greater_equal) Invalid workspaceSize: "
+                                 + std::to_string(workspaceSize));
     }
 
     void* workspaceAddr = nullptr;
@@ -874,44 +964,55 @@ NPUArray greater_equal(const NPUArray& x1, const py::object& scalar, py::dtype d
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
             aclDestroyScalar(acl_scalar);
-            std::string error_msg = "[logic.cpp](greater_equal) aclrtMalloc error = " + std::to_string(error);
+            std::string error_msg = "[logic.cpp](greater_equal) aclrtMalloc error = "
+                                    + std::to_string(error);
             const char* detailed_msg = aclGetRecentErrMsg();
-            if (detailed_msg && std::strlen(detailed_msg) > 0) error_msg += " - " + std::string(detailed_msg);
+            if (detailed_msg && std::strlen(detailed_msg) > 0)
+                error_msg += " - " + std::string(detailed_msg);
             throw std::runtime_error(error_msg);
         }
     }
 
     error = aclnnGeScalar(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         aclDestroyScalar(acl_scalar);
-        std::string error_msg = "[logic.cpp](greater_equal) aclnnGeScalar error = " + std::to_string(error);
+        std::string error_msg = "[logic.cpp](greater_equal) aclnnGeScalar error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
-        if (detailed_msg && std::strlen(detailed_msg) > 0) error_msg += " - " + std::string(detailed_msg);
+        if (detailed_msg && std::strlen(detailed_msg) > 0)
+            error_msg += " - " + std::string(detailed_msg);
         throw std::runtime_error(error_msg);
     }
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         aclDestroyScalar(acl_scalar);
-        std::string error_msg = "[logic.cpp](greater_equal) aclrtSynchronizeDevice error = " + std::to_string(error);
+        std::string error_msg = "[logic.cpp](greater_equal) aclrtSynchronizeDevice error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
-        if (detailed_msg && std::strlen(detailed_msg) > 0) error_msg += " - " + std::string(detailed_msg);
+        if (detailed_msg && std::strlen(detailed_msg) > 0)
+            error_msg += " - " + std::string(detailed_msg);
         throw std::runtime_error(error_msg);
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     aclDestroyScalar(acl_scalar);
-
     return out;
 }
 
-/**
- * @brief Perform element-wise less-than comparison between two arrays.
- */
-NPUArray less(const NPUArray& x1, const NPUArray& x2, py::dtype dtype) {
-    auto out = NPUArray(GetBroadcastShape(x1, x2), dtype);
+
+/// Element-wise less-than comparison between two arrays.
+NPUArray less(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> dtype) {
+    auto out = NPUArray(GetBroadcastShape(x1, x2),
+                        dtype.value_or(py::dtype::of<bool>()));
 
     uint64_t workspaceSize = 0;
     aclOpExecutor* executor = nullptr;
@@ -919,20 +1020,24 @@ NPUArray less(const NPUArray& x1, const NPUArray& x2, py::dtype dtype) {
         x1.tensorPtr, x2.tensorPtr, out.tensorPtr, &workspaceSize, &executor
     );
     if (error != ACL_SUCCESS) {
-        std::string error_msg = "[logic.cpp](less) aclnnLtTensorGetWorkspaceSize error = " + std::to_string(error);
+        std::string error_msg = "[logic.cpp](less) aclnnLtTensorGetWorkspaceSize error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
         if (detailed_msg && std::strlen(detailed_msg) > 0)
             error_msg += " - " + std::string(detailed_msg);
         throw std::runtime_error(error_msg);
     }
-    if (workspaceSize < 0)
-        throw std::runtime_error("[logic.cpp](less) Invalid workspaceSize: " + std::to_string(workspaceSize));
+    if (workspaceSize < 0) {
+        throw std::runtime_error("[logic.cpp](less) Invalid workspaceSize: "
+                                 + std::to_string(workspaceSize));
+    }
 
     void* workspaceAddr = nullptr;
     if (workspaceSize > 0) {
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
-            std::string error_msg = "[logic.cpp](less) aclrtMalloc error = " + std::to_string(error);
+            std::string error_msg = "[logic.cpp](less) aclrtMalloc error = "
+                                    + std::to_string(error);
             const char* detailed_msg = aclGetRecentErrMsg();
             if (detailed_msg && std::strlen(detailed_msg) > 0)
                 error_msg += " - " + std::string(detailed_msg);
@@ -942,8 +1047,11 @@ NPUArray less(const NPUArray& x1, const NPUArray& x2, py::dtype dtype) {
 
     error = aclnnLtTensor(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
-        std::string error_msg = "[logic.cpp](less) aclnnLtTensor error = " + std::to_string(error);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        std::string error_msg = "[logic.cpp](less) aclnnLtTensor error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
         if (detailed_msg && std::strlen(detailed_msg) > 0)
             error_msg += " - " + std::string(detailed_msg);
@@ -952,30 +1060,34 @@ NPUArray less(const NPUArray& x1, const NPUArray& x2, py::dtype dtype) {
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
-        std::string error_msg = "[logic.cpp](less) aclrtSynchronizeDevice error = " + std::to_string(error);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        std::string error_msg = "[logic.cpp](less) aclrtSynchronizeDevice error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
         if (detailed_msg && std::strlen(detailed_msg) > 0)
             error_msg += " - " + std::string(detailed_msg);
         throw std::runtime_error(error_msg);
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
-
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     return out;
 }
 
-/**
- * @brief Perform element-wise less-than comparison between an array and a scalar.
- */
-NPUArray less(const NPUArray& x1, const py::object& scalar, py::dtype dtype) {
-    auto out = NPUArray(x1.shape, dtype);
+/// Element-wise less-than comparison between an array and a scalar.
+NPUArray less(const NPUArray& x1, const py::object& scalar, std::optional<py::dtype> dtype) {
+    auto out = NPUArray(x1.shape,
+                        dtype.value_or(py::dtype::of<bool>()));
 
     double scalar_val = 0;
     try {
         scalar_val = py::cast<double>(scalar);
     } catch (const py::cast_error& e) {
-        throw std::runtime_error("[logic.cpp](less) Invalid scalar type: " + std::string(e.what()));
+        throw std::runtime_error("[logic.cpp](less) Invalid scalar type: "
+                                 + std::string(e.what()));
     }
     aclScalar* acl_scalar = aclCreateScalar(&scalar_val, x1.aclDtype);
 
@@ -986,7 +1098,8 @@ NPUArray less(const NPUArray& x1, const py::object& scalar, py::dtype dtype) {
     );
     if (error != ACL_SUCCESS) {
         aclDestroyScalar(acl_scalar);
-        std::string error_msg = "[logic.cpp](less) aclnnLtScalarGetWorkspaceSize error = " + std::to_string(error);
+        std::string error_msg = "[logic.cpp](less) aclnnLtScalarGetWorkspaceSize error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
         if (detailed_msg && std::strlen(detailed_msg) > 0)
             error_msg += " - " + std::string(detailed_msg);
@@ -994,7 +1107,8 @@ NPUArray less(const NPUArray& x1, const py::object& scalar, py::dtype dtype) {
     }
     if (workspaceSize < 0) {
         aclDestroyScalar(acl_scalar);
-        throw std::runtime_error("[logic.cpp](less) Invalid workspaceSize: " + std::to_string(workspaceSize));
+        throw std::runtime_error("[logic.cpp](less) Invalid workspaceSize: "
+                                 + std::to_string(workspaceSize));
     }
 
     void* workspaceAddr = nullptr;
@@ -1002,7 +1116,8 @@ NPUArray less(const NPUArray& x1, const py::object& scalar, py::dtype dtype) {
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
             aclDestroyScalar(acl_scalar);
-            std::string error_msg = "[logic.cpp](less) aclrtMalloc error = " + std::to_string(error);
+            std::string error_msg = "[logic.cpp](less) aclrtMalloc error = "
+                                    + std::to_string(error);
             const char* detailed_msg = aclGetRecentErrMsg();
             if (detailed_msg && std::strlen(detailed_msg) > 0)
                 error_msg += " - " + std::string(detailed_msg);
@@ -1012,9 +1127,12 @@ NPUArray less(const NPUArray& x1, const py::object& scalar, py::dtype dtype) {
 
     error = aclnnLtScalar(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         aclDestroyScalar(acl_scalar);
-        std::string error_msg = "[logic.cpp](less) aclnnLtScalar error = " + std::to_string(error);
+        std::string error_msg = "[logic.cpp](less) aclnnLtScalar error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
         if (detailed_msg && std::strlen(detailed_msg) > 0)
             error_msg += " - " + std::string(detailed_msg);
@@ -1023,26 +1141,30 @@ NPUArray less(const NPUArray& x1, const py::object& scalar, py::dtype dtype) {
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         aclDestroyScalar(acl_scalar);
-        std::string error_msg = "[logic.cpp](less) aclrtSynchronizeDevice error = " + std::to_string(error);
+        std::string error_msg = "[logic.cpp](less) aclrtSynchronizeDevice error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
         if (detailed_msg && std::strlen(detailed_msg) > 0)
             error_msg += " - " + std::string(detailed_msg);
         throw std::runtime_error(error_msg);
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     aclDestroyScalar(acl_scalar);
-
     return out;
 }
 
-/**
- * @brief Perform element-wise less-than-or-equal comparison between two arrays.
- */
-NPUArray less_equal(const NPUArray& x1, const NPUArray& x2, py::dtype dtype) {
-    auto out = NPUArray(GetBroadcastShape(x1, x2), dtype);
+
+/// Element-wise less-than-or-equal comparison between two arrays.
+NPUArray less_equal(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> dtype) {
+    auto out = NPUArray(GetBroadcastShape(x1, x2),
+                        dtype.value_or(py::dtype::of<bool>()));
 
     uint64_t workspaceSize = 0;
     aclOpExecutor* executor = nullptr;
@@ -1050,20 +1172,24 @@ NPUArray less_equal(const NPUArray& x1, const NPUArray& x2, py::dtype dtype) {
         x1.tensorPtr, x2.tensorPtr, out.tensorPtr, &workspaceSize, &executor
     );
     if (error != ACL_SUCCESS) {
-        std::string error_msg = "[logic.cpp](less_equal) aclnnLeTensorGetWorkspaceSize error = " + std::to_string(error);
+        std::string error_msg = "[logic.cpp](less_equal) aclnnLeTensorGetWorkspaceSize error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
         if (detailed_msg && std::strlen(detailed_msg) > 0)
             error_msg += " - " + std::string(detailed_msg);
         throw std::runtime_error(error_msg);
     }
-    if (workspaceSize < 0)
-        throw std::runtime_error("[logic.cpp](less_equal) Invalid workspaceSize: " + std::to_string(workspaceSize));
+    if (workspaceSize < 0) {
+        throw std::runtime_error("[logic.cpp](less_equal) Invalid workspaceSize: "
+                                 + std::to_string(workspaceSize));
+    }
 
     void* workspaceAddr = nullptr;
     if (workspaceSize > 0) {
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
-            std::string error_msg = "[logic.cpp](less_equal) aclrtMalloc error = " + std::to_string(error);
+            std::string error_msg = "[logic.cpp](less_equal) aclrtMalloc error = "
+                                    + std::to_string(error);
             const char* detailed_msg = aclGetRecentErrMsg();
             if (detailed_msg && std::strlen(detailed_msg) > 0)
                 error_msg += " - " + std::string(detailed_msg);
@@ -1073,8 +1199,11 @@ NPUArray less_equal(const NPUArray& x1, const NPUArray& x2, py::dtype dtype) {
 
     error = aclnnLeTensor(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
-        std::string error_msg = "[logic.cpp](less_equal) aclnnLeTensor error = " + std::to_string(error);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        std::string error_msg = "[logic.cpp](less_equal) aclnnLeTensor error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
         if (detailed_msg && std::strlen(detailed_msg) > 0)
             error_msg += " - " + std::string(detailed_msg);
@@ -1083,30 +1212,34 @@ NPUArray less_equal(const NPUArray& x1, const NPUArray& x2, py::dtype dtype) {
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
-        std::string error_msg = "[logic.cpp](less_equal) aclrtSynchronizeDevice error = " + std::to_string(error);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        std::string error_msg = "[logic.cpp](less_equal) aclrtSynchronizeDevice error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
         if (detailed_msg && std::strlen(detailed_msg) > 0)
             error_msg += " - " + std::string(detailed_msg);
         throw std::runtime_error(error_msg);
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
-
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     return out;
 }
 
-/**
- * @brief Perform element-wise less-than-or-equal comparison between an array and a scalar.
- */
-NPUArray less_equal(const NPUArray& x1, const py::object& scalar, py::dtype dtype) {
-    auto out = NPUArray(x1.shape, dtype);
+/// Element-wise less-than-or-equal comparison between an array and a scalar.
+NPUArray less_equal(const NPUArray& x1, const py::object& scalar, std::optional<py::dtype> dtype) {
+    auto out = NPUArray(x1.shape,
+                        dtype.value_or(py::dtype::of<bool>()));
 
     double scalar_val = 0;
     try {
         scalar_val = py::cast<double>(scalar);
     } catch (const py::cast_error& e) {
-        throw std::runtime_error("[logic.cpp](less_equal) Invalid scalar type: " + std::string(e.what()));
+        throw std::runtime_error("[logic.cpp](less_equal) Invalid scalar type: "
+                                 + std::string(e.what()));
     }
     aclScalar* acl_scalar = aclCreateScalar(&scalar_val, x1.aclDtype);
 
@@ -1117,7 +1250,8 @@ NPUArray less_equal(const NPUArray& x1, const py::object& scalar, py::dtype dtyp
     );
     if (error != ACL_SUCCESS) {
         aclDestroyScalar(acl_scalar);
-        std::string error_msg = "[logic.cpp](less_equal) aclnnLeScalarGetWorkspaceSize error = " + std::to_string(error);
+        std::string error_msg = "[logic.cpp](less_equal) aclnnLeScalarGetWorkspaceSize error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
         if (detailed_msg && std::strlen(detailed_msg) > 0)
             error_msg += " - " + std::string(detailed_msg);
@@ -1125,7 +1259,8 @@ NPUArray less_equal(const NPUArray& x1, const py::object& scalar, py::dtype dtyp
     }
     if (workspaceSize < 0) {
         aclDestroyScalar(acl_scalar);
-        throw std::runtime_error("[logic.cpp](less_equal) Invalid workspaceSize: " + std::to_string(workspaceSize));
+        throw std::runtime_error("[logic.cpp](less_equal) Invalid workspaceSize: "
+                                 + std::to_string(workspaceSize));
     }
 
     void* workspaceAddr = nullptr;
@@ -1133,7 +1268,8 @@ NPUArray less_equal(const NPUArray& x1, const py::object& scalar, py::dtype dtyp
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
             aclDestroyScalar(acl_scalar);
-            std::string error_msg = "[logic.cpp](less_equal) aclrtMalloc error = " + std::to_string(error);
+            std::string error_msg = "[logic.cpp](less_equal) aclrtMalloc error = "
+                                    + std::to_string(error);
             const char* detailed_msg = aclGetRecentErrMsg();
             if (detailed_msg && std::strlen(detailed_msg) > 0)
                 error_msg += " - " + std::string(detailed_msg);
@@ -1143,9 +1279,12 @@ NPUArray less_equal(const NPUArray& x1, const py::object& scalar, py::dtype dtyp
 
     error = aclnnLeScalar(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         aclDestroyScalar(acl_scalar);
-        std::string error_msg = "[logic.cpp](less_equal) aclnnLeScalar error = " + std::to_string(error);
+        std::string error_msg = "[logic.cpp](less_equal) aclnnLeScalar error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
         if (detailed_msg && std::strlen(detailed_msg) > 0)
             error_msg += " - " + std::string(detailed_msg);
@@ -1154,84 +1293,97 @@ NPUArray less_equal(const NPUArray& x1, const py::object& scalar, py::dtype dtyp
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         aclDestroyScalar(acl_scalar);
-        std::string error_msg = "[logic.cpp](less_equal) aclrtSynchronizeDevice error = " + std::to_string(error);
+        std::string error_msg = "[logic.cpp](less_equal) aclrtSynchronizeDevice error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
         if (detailed_msg && std::strlen(detailed_msg) > 0)
             error_msg += " - " + std::string(detailed_msg);
         throw std::runtime_error(error_msg);
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     aclDestroyScalar(acl_scalar);
-
     return out;
 }
 
-/**
- * @brief Perform element-wise equality comparison between two arrays.
- */
-NPUArray equal(const NPUArray& x1, const NPUArray& x2, py::dtype dtype) {
-    auto out = NPUArray(GetBroadcastShape(x1, x2), dtype);
+/// Element-wise equality comparison between two arrays.
+/// Note: aclnnEqual does not support broadcasting. Inputs must have identical shapes.
+NPUArray equal(const NPUArray& x1, const NPUArray& x2,
+               std::optional<py::dtype> dtype) {
+    // 1. Shape check
+    if (x1.shape != x2.shape) {
+        throw std::runtime_error(
+            "[logic.cpp](equal) Input shapes must match exactly. "
+            "Broadcasting is not supported by aclnnEqual. "
+            "Got shape mismatch.");
+    }
 
+    // 2. Allocate output
+    auto out = NPUArray(x1.shape, dtype.value_or(py::dtype::of<bool>()));
+
+    // 3. Query workspace
     uint64_t workspaceSize = 0;
     aclOpExecutor* executor = nullptr;
     auto error = aclnnEqualGetWorkspaceSize(
         x1.tensorPtr, x2.tensorPtr, out.tensorPtr, &workspaceSize, &executor
     );
     if (error != ACL_SUCCESS) {
-        std::string error_msg = "[logic.cpp](equal) aclnnEqualGetWorkspaceSize error = " + std::to_string(error);
+        std::string error_msg =
+            "[logic.cpp](equal) aclnnEqualGetWorkspaceSize error = " +
+            std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
         if (detailed_msg && std::strlen(detailed_msg) > 0)
             error_msg += " - " + std::string(detailed_msg);
         throw std::runtime_error(error_msg);
     }
-    if (workspaceSize < 0)
-        throw std::runtime_error("[logic.cpp](equal) Invalid workspaceSize: " + std::to_string(workspaceSize));
 
+    // 4. Allocate workspace
     void* workspaceAddr = nullptr;
     if (workspaceSize > 0) {
-        error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
+        error = aclrtMalloc(&workspaceAddr, workspaceSize,
+                            ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
-            std::string error_msg = "[logic.cpp](equal) aclrtMalloc error = " + std::to_string(error);
-            const char* detailed_msg = aclGetRecentErrMsg();
-            if (detailed_msg && std::strlen(detailed_msg) > 0)
-                error_msg += " - " + std::string(detailed_msg);
-            throw std::runtime_error(error_msg);
+            throw std::runtime_error("[logic.cpp](equal) aclrtMalloc error = " +
+                                     std::to_string(error));
         }
     }
 
+    // 5. Execute
     error = aclnnEqual(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
         if (workspaceAddr) aclrtFree(workspaceAddr);
-        std::string error_msg = "[logic.cpp](equal) aclnnEqual error = " + std::to_string(error);
+        std::string error_msg =
+            "[logic.cpp](equal) aclnnEqual error = " + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
         if (detailed_msg && std::strlen(detailed_msg) > 0)
             error_msg += " - " + std::string(detailed_msg);
         throw std::runtime_error(error_msg);
     }
 
+    // 6. Sync
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
         if (workspaceAddr) aclrtFree(workspaceAddr);
-        std::string error_msg = "[logic.cpp](equal) aclrtSynchronizeDevice error = " + std::to_string(error);
-        const char* detailed_msg = aclGetRecentErrMsg();
-        if (detailed_msg && std::strlen(detailed_msg) > 0)
-            error_msg += " - " + std::string(detailed_msg);
-        throw std::runtime_error(error_msg);
+        throw std::runtime_error("[logic.cpp](equal) aclrtSynchronizeDevice error = " +
+                                 std::to_string(error));
     }
 
+    // 7. Free
     if (workspaceAddr) aclrtFree(workspaceAddr);
 
     return out;
 }
 
-/**
- * @brief Perform element-wise not-equal comparison between two arrays.
- */
-NPUArray not_equal(const NPUArray& x1, const NPUArray& x2, py::dtype dtype) {
-    auto out = NPUArray(GetBroadcastShape(x1, x2), dtype);
+/// Element-wise not-equal comparison between two arrays.
+NPUArray not_equal(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> dtype) {
+    auto out = NPUArray(GetBroadcastShape(x1, x2),
+                        dtype.value_or(py::dtype::of<bool>()));
 
     uint64_t workspaceSize = 0;
     aclOpExecutor* executor = nullptr;
@@ -1239,20 +1391,24 @@ NPUArray not_equal(const NPUArray& x1, const NPUArray& x2, py::dtype dtype) {
         x1.tensorPtr, x2.tensorPtr, out.tensorPtr, &workspaceSize, &executor
     );
     if (error != ACL_SUCCESS) {
-        std::string error_msg = "[logic.cpp](not_equal) aclnnNeTensorGetWorkspaceSize error = " + std::to_string(error);
+        std::string error_msg = "[logic.cpp](not_equal) aclnnNeTensorGetWorkspaceSize error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
         if (detailed_msg && std::strlen(detailed_msg) > 0)
             error_msg += " - " + std::string(detailed_msg);
         throw std::runtime_error(error_msg);
     }
-    if (workspaceSize < 0)
-        throw std::runtime_error("[logic.cpp](not_equal) Invalid workspaceSize: " + std::to_string(workspaceSize));
+    if (workspaceSize < 0) {
+        throw std::runtime_error("[logic.cpp](not_equal) Invalid workspaceSize: "
+                                 + std::to_string(workspaceSize));
+    }
 
     void* workspaceAddr = nullptr;
     if (workspaceSize > 0) {
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
-            std::string error_msg = "[logic.cpp](not_equal) aclrtMalloc error = " + std::to_string(error);
+            std::string error_msg = "[logic.cpp](not_equal) aclrtMalloc error = "
+                                    + std::to_string(error);
             const char* detailed_msg = aclGetRecentErrMsg();
             if (detailed_msg && std::strlen(detailed_msg) > 0)
                 error_msg += " - " + std::string(detailed_msg);
@@ -1262,8 +1418,11 @@ NPUArray not_equal(const NPUArray& x1, const NPUArray& x2, py::dtype dtype) {
 
     error = aclnnNeTensor(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
-        std::string error_msg = "[logic.cpp](not_equal) aclnnNeTensor error = " + std::to_string(error);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        std::string error_msg = "[logic.cpp](not_equal) aclnnNeTensor error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
         if (detailed_msg && std::strlen(detailed_msg) > 0)
             error_msg += " - " + std::string(detailed_msg);
@@ -1272,30 +1431,34 @@ NPUArray not_equal(const NPUArray& x1, const NPUArray& x2, py::dtype dtype) {
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
-        std::string error_msg = "[logic.cpp](not_equal) aclrtSynchronizeDevice error = " + std::to_string(error);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
+        std::string error_msg = "[logic.cpp](not_equal) aclrtSynchronizeDevice error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
         if (detailed_msg && std::strlen(detailed_msg) > 0)
             error_msg += " - " + std::string(detailed_msg);
         throw std::runtime_error(error_msg);
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
-
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     return out;
 }
 
-/**
- * @brief Perform element-wise not-equal comparison between an array and a scalar.
- */
-NPUArray not_equal(const NPUArray& x1, const py::object& scalar, py::dtype dtype) {
-    auto out = NPUArray(x1.shape, dtype);
+/// Element-wise not-equal comparison between an array and a scalar.
+NPUArray not_equal(const NPUArray& x1, const py::object& scalar, std::optional<py::dtype> dtype) {
+    auto out = NPUArray(x1.shape,
+                        dtype.value_or(py::dtype::of<bool>()));
 
     double scalar_val = 0;
     try {
         scalar_val = py::cast<double>(scalar);
     } catch (const py::cast_error& e) {
-        throw std::runtime_error("[logic.cpp](not_equal) Invalid scalar type: " + std::string(e.what()));
+        throw std::runtime_error("[logic.cpp](not_equal) Invalid scalar type: "
+                                 + std::string(e.what()));
     }
     aclScalar* acl_scalar = aclCreateScalar(&scalar_val, x1.aclDtype);
 
@@ -1306,7 +1469,8 @@ NPUArray not_equal(const NPUArray& x1, const py::object& scalar, py::dtype dtype
     );
     if (error != ACL_SUCCESS) {
         aclDestroyScalar(acl_scalar);
-        std::string error_msg = "[logic.cpp](not_equal) aclnnNeScalarGetWorkspaceSize error = " + std::to_string(error);
+        std::string error_msg = "[logic.cpp](not_equal) aclnnNeScalarGetWorkspaceSize error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
         if (detailed_msg && std::strlen(detailed_msg) > 0)
             error_msg += " - " + std::string(detailed_msg);
@@ -1314,7 +1478,8 @@ NPUArray not_equal(const NPUArray& x1, const py::object& scalar, py::dtype dtype
     }
     if (workspaceSize < 0) {
         aclDestroyScalar(acl_scalar);
-        throw std::runtime_error("[logic.cpp](not_equal) Invalid workspaceSize: " + std::to_string(workspaceSize));
+        throw std::runtime_error("[logic.cpp](not_equal) Invalid workspaceSize: "
+                                 + std::to_string(workspaceSize));
     }
 
     void* workspaceAddr = nullptr;
@@ -1322,7 +1487,8 @@ NPUArray not_equal(const NPUArray& x1, const py::object& scalar, py::dtype dtype
         error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         if (error != ACL_SUCCESS) {
             aclDestroyScalar(acl_scalar);
-            std::string error_msg = "[logic.cpp](not_equal) aclrtMalloc error = " + std::to_string(error);
+            std::string error_msg = "[logic.cpp](not_equal) aclrtMalloc error = "
+                                    + std::to_string(error);
             const char* detailed_msg = aclGetRecentErrMsg();
             if (detailed_msg && std::strlen(detailed_msg) > 0)
                 error_msg += " - " + std::string(detailed_msg);
@@ -1332,9 +1498,12 @@ NPUArray not_equal(const NPUArray& x1, const py::object& scalar, py::dtype dtype
 
     error = aclnnNeScalar(workspaceAddr, workspaceSize, executor, nullptr);
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         aclDestroyScalar(acl_scalar);
-        std::string error_msg = "[logic.cpp](not_equal) aclnnNeScalar error = " + std::to_string(error);
+        std::string error_msg = "[logic.cpp](not_equal) aclnnNeScalar error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
         if (detailed_msg && std::strlen(detailed_msg) > 0)
             error_msg += " - " + std::string(detailed_msg);
@@ -1343,17 +1512,23 @@ NPUArray not_equal(const NPUArray& x1, const py::object& scalar, py::dtype dtype
 
     error = aclrtSynchronizeDevice();
     if (error != ACL_SUCCESS) {
-        if (workspaceAddr) aclrtFree(workspaceAddr);
+        if (workspaceAddr) {
+            aclrtFree(workspaceAddr);
+        }
         aclDestroyScalar(acl_scalar);
-        std::string error_msg = "[logic.cpp](not_equal) aclrtSynchronizeDevice error = " + std::to_string(error);
+        std::string error_msg = "[logic.cpp](not_equal) aclrtSynchronizeDevice error = "
+                                + std::to_string(error);
         const char* detailed_msg = aclGetRecentErrMsg();
         if (detailed_msg && std::strlen(detailed_msg) > 0)
             error_msg += " - " + std::string(detailed_msg);
         throw std::runtime_error(error_msg);
     }
 
-    if (workspaceAddr) aclrtFree(workspaceAddr);
+    if (workspaceAddr) {
+        aclrtFree(workspaceAddr);
+    }
     aclDestroyScalar(acl_scalar);
-
     return out;
+}
+
 }
