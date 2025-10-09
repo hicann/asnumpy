@@ -10,7 +10,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "asnumpy"
+name = "asnumpy" 
 dynamic = ["version"]
 description = "A NumPy-like library accelerated by Ascend NPU"
 readme = "README.md"
