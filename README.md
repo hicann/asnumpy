@@ -142,28 +142,19 @@ total_sum = ap.sum(elementwise_product)
 
 **环境要求**：  
 - 操作系统：Linux  
-- 编译工具：`gcc >= 11.2`、`ninja-build`  
-- Python：`>= 3.9`  
-- 硬件环境：昇腾 910B  
-- 软件环境：`CANN 8.2.RC1.alpha003` 已安装  
+- 编译工具：`GCC >= 11.2`、`ninja-build`
+- Python：`>= 3.9`
+- 硬件环境：昇腾 910B`
+- 软件环境：`CANN 8.2.RC1.alpha003` 已安装`
 
 **用户使用方式**：
 ```bash
 git clone --recursive https://gitcode.com/cann/asnumpy.git
 cd asnumpy
-pip install .
+pip install -r requirements.txt
+python -m build
+pip install dist/*.whl
 ```
-
-**开发者使用方式**：
-```bash
-git clone --recursive https://gitcode.com/cann/asnumpy.git
-cd asnumpy
-mkdir build && cd build
-cmake .. -GNinja && ninja
-```
-> 构建产物将位于 `asnumpy/lib` 子文件夹下。  
-开发者可在 `src` 与 `include` 文件夹中开发新的 API。
-
 
 ---
 
