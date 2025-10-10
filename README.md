@@ -144,8 +144,8 @@ total_sum = ap.sum(elementwise_product)
 - 操作系统：Linux  
 - 编译工具：`GCC >= 11.2`、`ninja-build`
 - Python：`>= 3.9`
-- 硬件环境：昇腾 910B`
-- 软件环境：`CANN 8.2.RC1.alpha003` 已安装`
+- 硬件环境：昇腾 910B
+- 软件环境：`CANN 8.2.RC1.alpha003` 已安装
 
 **用户使用方式**：
 ```bash
