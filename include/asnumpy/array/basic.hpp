@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2025 AISS Group at Harbin Institute of Technology
+ * Copyright (c) 2025 AISS Group at Harbin Institute of Technology. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
