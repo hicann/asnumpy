@@ -37,8 +37,11 @@ project(ascend_numpy)
 
 find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
 
-include_directories(/usr/local/Ascend/ascend-toolkit/latest/include)
-link_directories(/usr/local/Ascend/ascend-toolkit/latest/lib64)
+set(ASCEND_CANN_PACKAGE_PATH "/usr/local/Ascend/ascend-toolkit/latest"
+    CACHE STRING "ASCEND CANN package installation directory")
+
+include_directories(${ASCEND_CANN_PACKAGE_PATH}/include)
+link_directories(${ASCEND_CANN_PACKAGE_PATH}/lib64)
 
 include_directories(${Python3_NumPy_INCLUDE_DIRS})
 
