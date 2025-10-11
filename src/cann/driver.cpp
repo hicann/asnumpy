@@ -25,3 +25,11 @@ void asnumpy::cann::init() {
         fmt::println("{}", message);
     }
 }
+
+void asnumpy::cann::finalize() {
+    auto ret = aclFinalize();
+    if (ret != ACL_SUCCESS) {
+        auto message = aclGetRecentErrMsg();
+        fmt::println("{}", message);
+    }
+}

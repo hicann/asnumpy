@@ -24,4 +24,5 @@ void bind_cann(pybind11::module_& cann) {
     cann.def("reset_device", &aclrtResetDevice, pybind11::arg("device_id"));
     cann.def("reset_device_force", &aclrtResetDeviceForce, pybind11::arg("device_id"));
     cann.def("init", &asnumpy::cann::init);
+    cann.def("finalize", &asnumpy::cann::finalize);
 }

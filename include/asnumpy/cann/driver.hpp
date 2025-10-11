@@ -24,6 +24,7 @@ namespace asnumpy {
 namespace cann {
 
 void init();
+void finalize();
 
 }
 }
