@@ -25,6 +25,8 @@
 #include <aclnnop/aclnn_convolution.h>
 #include <aclnnop/aclnn_clamp.h>
 #include <aclnnop/aclnn_pow.h>
+#include <aclnnop/aclnn_relu.h>
+#include <aclnnop/aclnn_gelu.h> 
 #include <aclnnop/aclnn_nan_to_num.h>
 #include <aclnnop/aclnn_abs.h>
 #include <aclnnop/aclnn_sign.h>
@@ -750,4 +752,70 @@ NPUArray Fmin(const NPUArray& x1, const NPUArray& x2, std::optional<py::dtype> d
     return out;
 }
 
+
+/**
+ * @brief Compute element-wise Rectified Linear Unit (ReLU).
+ * 
+ * Applies ReLU activation function element-wise: max(0, x).
+ * Equivalent to numpy.maximum(x, 0).
+ * 
+ * @param x Input array.
+ * @param dtype Optional target numpy dtype for the output array. If not provided, uses input dtype.
+ * @return NPUArray Array with element-wise ReLU values.
+ * @throws std::runtime_error If ACL operation or memory allocation fails.
+ */
+ NPUArray Relu(const NPUArray& x, std::optional<py::dtype> dtype) {
+    py::dtype out_dtype = dtype.has_value() ? dtype.value() : x.dtype;
+    auto out = NPUArray(x.shape, out_dtype);
+    uint64_t workspaceSize = 0;
+    aclOpExecutor* executor = nullptr;
+    auto error = aclnnReluGetWorkspaceSize(x.tensorPtr, out.tensorPtr, &workspaceSize, &executor);
+    CheckGetWorkspaceSizeAclnnStatus(error);
+    void* workspaceAddr = nullptr;
+    if(workspaceSize > 0) {
+        error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
+        CheckMallocAclnnStatus(error);
+    }
+    error = aclnnRelu(workspaceAddr, workspaceSize, executor, nullptr);
+    CheckAclnnStatus(error, "aclnnRelu error");
+    error = aclrtSynchronizeDevice();
+    CheckSynchronizeDeviceAclnnStatus(error);
+    if (workspaceAddr) aclrtFree(workspaceAddr);
+    return out;
+}
+
+
+/**
+ * @brief Compute element-wise Gaussian Error Linear Unit (GELU).
+ * 
+ * Applies GELU activation function element-wise: GELU(x) = x * Φ(x)
+ * where Φ(x) is the cumulative distribution function of the standard normal distribution.
+ * 
+ * GELU is commonly used in models like BERT and GPT. It provides smoother gradients
+ * compared to ReLU and incorporates probabilistic properties.
+ * 
+ * @param x Input array.
+ * @param dtype Optional target numpy dtype for the output array. If not provided, uses input dtype.
+ * @return NPUArray Array with element-wise GELU values.
+ * @throws std::runtime_error If ACL operation or memory allocation fails.
+ */
+ NPUArray Gelu(const NPUArray& x, std::optional<py::dtype> dtype) {
+    py::dtype out_dtype = dtype.has_value() ? dtype.value() : x.dtype;
+    auto out = NPUArray(x.shape, out_dtype);
+    uint64_t workspaceSize = 0;
+    aclOpExecutor* executor = nullptr;
+    auto error = aclnnGeluGetWorkspaceSize(x.tensorPtr, out.tensorPtr, &workspaceSize, &executor);
+    CheckGetWorkspaceSizeAclnnStatus(error);
+    void* workspaceAddr = nullptr;
+    if(workspaceSize > 0) {
+        error = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
+        CheckMallocAclnnStatus(error);
+    }
+    error = aclnnGelu(workspaceAddr, workspaceSize, executor, nullptr);
+    CheckAclnnStatus(error, "aclnnGelu error");
+    error = aclrtSynchronizeDevice();
+    CheckSynchronizeDeviceAclnnStatus(error);
+    if (workspaceAddr) aclrtFree(workspaceAddr);
+    return out;
+}
 }
