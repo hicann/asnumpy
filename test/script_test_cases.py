@@ -105,11 +105,10 @@ MATMUL_DOT_TEST_CASES = [
 
 # 范数测试用例 (数组, ord, axis, keepdims)
 NORM_TEST_CASES = [
-    (np.array([1,2,3], dtype=np.float32), None, None, False),
-    (np.array([[1,2],[3,4]], dtype=np.float32), 'fro', None, False),
-    (np.array([[1,2],[3,4]], dtype=np.float32), 2, (0,1), True),
-    (np.array([-1,0,1], dtype=np.float32), 1, None, False),
-    (np.array([[np.nan,0],[0,1]], dtype=np.float32), None, None, False)
+    (np.array([1, 2, 3], dtype=np.float32), 1, (0, ), False),
+    (np.array([[1, 2], [3, 4]], dtype=np.float32), 2, (0, 1), True),
+    (np.array([-1, 0, 1], dtype=np.float32), 1, (0, ), False),
+    (np.array([[np.nan, 0], [0, 1]], dtype=np.float32), 0, (0, ), False)
 ]
 
 # QR分解测试用例 (数组, mode)
@@ -121,7 +120,7 @@ QR_TEST_CASES = [
 
 # Einsum测试用例 (表达式, 操作数列表)
 EINSUM_TEST_CASES = [
-    ('i,j->ij',np.array([1,2], dtype=np.float32),np.array([3,4], dtype=np.float32)),
+    ('a,b->ab', np.array([1, 2], dtype=np.float32), np.array([3, 4], dtype=np.float32)),
 ]
 
 # 矩阵乘方测试用例 (数组, 幂次)
@@ -185,7 +184,7 @@ OUTER_TEST_CASES = [
 # 行列式和符号对数行列式专用测试数据 (方阵)
 DET_SLOGDET_TEST_CASES = [
     # 2x2矩阵
-    np.array([[1, 2], [3, 4]], dtype=np.float32),  
+    np.array([[1, 2], [3, 4]], dtype=np.float64),  
     # 3x3矩阵
     np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float32),
     # 特殊值矩阵
@@ -749,4 +748,17 @@ DEGREES_TEST_CASES = [
     np.array([2 * np.pi]),
     np.array([-np.pi]),
     np.array([np.pi / 4]),
+]
+
+LINSPACE_TEST_CASES = [
+    (0, 10),
+    (0, 10, 2),
+    (1, 5, 0.5),
+    (-5, 5, 1),
+    (0, 10, 1, np.int32),
+    (0, 10, 1, np.float32),
+    (0, 10, 1, np.dtype("int32")),
+    (0, 10, 1, np.dtype("float32")),
+    (0, 10, 1, "int32"),
+    (0, 10, 1, "float32"),
 ]

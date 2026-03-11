@@ -14,37 +14,77 @@
 # limitations under the License.
 # *****************************************************************************
 
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.22...3.30)
+project(${SKBUILD_PROJECT_NAME} LANGUAGES CXX)
+
+# CMake policies
+if(POLICY CMP0135)
+    cmake_policy(SET CMP0135 NEW)
+endif()
+
+# C++ standard
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# FetchContent module (for fmt, spdlog, etc.)
 include(FetchContent)
 
-FetchContent_Declare(
-    fmt
-    URL file://${CMAKE_SOURCE_DIR}/third_party/fmt/fmt-12.0.0.tar.gz
-)
+# ========== pybind11 (from pip, scikit-build-core auto-configures CMAKE_PREFIX_PATH) ==========
+set(PYBIND11_FINDPYTHON ON)
+find_package(pybind11 CONFIG REQUIRED)
 
-FetchContent_Declare(
-    pybind11
-    URL file://${CMAKE_SOURCE_DIR}/third_party/pybind11/pybind11-3.0.1.tar.gz
-)
+# ========== Python with NumPy ==========
+find_package(Python REQUIRED COMPONENTS Interpreter Development NumPy)
 
-FetchContent_MakeAvailable(fmt pybind11)
+# ========== CANN SDK (environment variable lookup) ==========
+if(DEFINED ENV{ASCEND_TOOLKIT_HOME})
+    set(ASCEND_CANN_PATH "$ENV{ASCEND_TOOLKIT_HOME}")
+elseif(DEFINED ENV{ASCEND_HOME_PATH})
+    set(ASCEND_CANN_PATH "$ENV{ASCEND_HOME_PATH}")
+else()
+    set(ASCEND_CANN_PATH "/usr/local/Ascend/ascend-toolkit/latest")
+    message(WARNING "CANN SDK path not set. Using default: ${ASCEND_CANN_PATH}. "
+                    "Set ASCEND_TOOLKIT_HOME or ASCEND_HOME_PATH environment variable.")
+endif()
+message(STATUS "CANN SDK: ${ASCEND_CANN_PATH}")
 
-project(ascend_numpy)
+include_directories(${ASCEND_CANN_PATH}/include)
+link_directories(${ASCEND_CANN_PATH}/lib64)
 
-find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
+# NumPy include
+include_directories(${Python_NumPy_INCLUDE_DIRS})
 
-set(ASCEND_CANN_PACKAGE_PATH "/usr/local/Ascend/ascend-toolkit/latest"
-    CACHE STRING "ASCEND CANN package installation directory")
+# ========== fmt (system package first, fallback to FetchContent) ==========
+find_package(fmt QUIET)
+if(NOT fmt_FOUND)
+    message(STATUS "fmt not found in system, fetching from GitHub...")
+    FetchContent_Declare(
+        fmt
+        GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+        GIT_TAG 12.0.0
+    )
+    set(FMT_TEST OFF CACHE BOOL "" FORCE)
+    set(FMT_DOC OFF CACHE BOOL "" FORCE)
+    set(FMT_INSTALL OFF CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(fmt)
+else()
+    message(STATUS "Using system fmt: ${fmt_VERSION}")
+endif()
 
-include_directories(${ASCEND_CANN_PACKAGE_PATH}/include)
-link_directories(${ASCEND_CANN_PACKAGE_PATH}/lib64)
-
-include_directories(${Python3_NumPy_INCLUDE_DIRS})
-
+# ========== Source directories ==========
 include_directories(include)
 add_subdirectory(src)
 add_subdirectory(python)
+
+# ========== Install Python package ==========
+if(SKBUILD)
+    message(STATUS "Building with scikit-build-core")
+    install(DIRECTORY "${CMAKE_SOURCE_DIR}/asnumpy/"
+            DESTINATION "asnumpy"
+            FILES_MATCHING
+            PATTERN "*.py"
+            PATTERN "__pycache__" EXCLUDE
+            PATTERN "*.pyc" EXCLUDE)
+endif()
