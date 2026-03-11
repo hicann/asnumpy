@@ -34,6 +34,10 @@ How to use:
 # BROADCAST_TEST_CASES: 双操作数广播测试数据集
 # MATMUL_DOT_TEST_CASES、MATRIX_POWER_TEST_CASES: 矩阵乘法等对输入张量格式有要求的数据集
 
+ARRAY_FUNCTIONS = [
+    ("linspace", np.linspace, ap.linspace, LINSPACE_TEST_CASES),
+]
+
 MATH_FUNCTIONS = [
     ("fabs", np.fabs, ap.fabs, UNARY_TEST_CASES),
     ("absolute", np.absolute, ap.absolute, UNARY_TEST_CASES),
@@ -116,6 +120,8 @@ MATH_FUNCTIONS = [
     ("max", np.max, ap.max, UNARY_TEST_CASES + PROD_DIM_TEST_CASES),
     ("amax", np.amax, ap.amax, UNARY_TEST_CASES + PROD_DIM_TEST_CASES),
     ("nanmax", np.nanmax, ap.nanmax, UNARY_TEST_CASES + NANPROD_DIM_TEST_CASES),
+    ("min", np.min, ap.min, UNARY_TEST_CASES + PROD_DIM_TEST_CASES),
+    ("amin", np.amin, ap.amin, UNARY_TEST_CASES + PROD_DIM_TEST_CASES),
 ]
 
 LINALG_FUNCTIONS = [
@@ -157,7 +163,7 @@ SORTING_FUNCTIONS = [
 ]
 
 # 总表
-FUNCTIONS_TABLE = MATH_FUNCTIONS + LINALG_FUNCTIONS + LOGIC_FUNCTIONS + SORTING_FUNCTIONS
+FUNCTIONS_TABLE = ARRAY_FUNCTIONS + MATH_FUNCTIONS + LINALG_FUNCTIONS + LOGIC_FUNCTIONS + SORTING_FUNCTIONS
 
 # =========================测试函数本体======================
 
@@ -182,12 +188,14 @@ def test_functions():
                         for arg in test_case
                     )
                     # === 特殊函数注释说明 ===
-                    # 测试 prod, sum, nanprod, nansum, max, amax 时，
+                    # 测试 prod, sum, nanprod, nansum, max, amax, min, amin 时，
                     # 可使用：np_func(test_case[0], axis=test_case[1], keepdims=test_case[2])
                     # 测试 cross 时，可使用：np_func(test_case[0], test_case[1], axis=test_case[2])
                     # 测试 nan_to_num 时，可使用：np_func(test_case[0], nan=test_case[1], posinf=test_case[2], neginf=test_case[3])
                     if name == "prod" or name == "sum" or name == "nanprod" or name == "nansum" or name == "max" \
                     or name == "amax" or name == "nanmax":
+                        np_result = np_func(test_case[0], axis=test_case[1], keepdims=test_case[2])
+                    elif name == "min" or name == "amin":
                         np_result = np_func(test_case[0], axis=test_case[1], keepdims=test_case[2])
                     elif name == "cross":
                         np_result = np_func(test_case[0], test_case[1], axis=test_case[2])
