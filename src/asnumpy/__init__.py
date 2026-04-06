@@ -14,6 +14,9 @@
 # limitations under the License.
 # *****************************************************************************
 
+# Standard library
+import atexit
+import functools
 import importlib
 import os
 import sys
@@ -21,6 +24,23 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 from loguru import logger
+
+# NumPy constants — always CPU, re-exported for drop-in compatibility
+from numpy import (
+    can_cast,
+    dtype,
+    e,
+    euler_gamma,
+    finfo,
+    iinfo,
+    inf,
+    issubdtype,
+    nan,
+    newaxis,
+    pi,
+    promote_types,
+    result_type,
+)
 
 from .cann import finalize, init, reset_device, reset_device_force, set_device
 
@@ -35,6 +55,10 @@ if TYPE_CHECKING:
         ShapeLike,
     )
     from .array import (
+        array,
+        asanyarray,
+        asarray,
+        copy,
         empty,
         empty_like,
         eye,
@@ -180,6 +204,10 @@ _NUMPY_DTYPE_NAMES = {
 
 _LAZY_MAPPING = {
     # .array
+    "array": ".array",
+    "asarray": ".array",
+    "asanyarray": ".array",
+    "copy": ".array",
     "empty": ".array",
     "empty_like": ".array",
     "eye": ".array",
@@ -309,6 +337,8 @@ _LAZY_MAPPING = {
     "sort": ".sorting",
     # .statistics
     "mean": ".statistics",
+    # .testing
+    "testing": ".testing",
     # .nn
     "softmax": ".nn",
     # .io
@@ -337,7 +367,26 @@ _EAGER_EXPORTS = [
     "set_device",
 ]
 
-__all__ = _EAGER_EXPORTS + list(_LAZY_MAPPING.keys())
+_NUMPY_CONSTANTS = [
+    "pi",
+    "e",
+    "inf",
+    "nan",
+    "newaxis",
+    "euler_gamma",
+]
+
+_NUMPY_DTYPE_UTILS = [
+    "dtype",
+    "finfo",
+    "iinfo",
+    "issubdtype",
+    "can_cast",
+    "promote_types",
+    "result_type",
+]
+
+__all__ = _EAGER_EXPORTS + _NUMPY_CONSTANTS + _NUMPY_DTYPE_UTILS + list(_LAZY_MAPPING.keys())
 
 
 # Get version from package metadata
@@ -349,19 +398,83 @@ except Exception:
     __version__ = "0.2.0"
 
 
+def _wrap_result(result):
+    """Recursively wrap np.ndarray -> asnumpy.ndarray in fallback results.
+
+    Handles direct ndarray returns and list/tuple containers.
+    Non-array objects are returned as-is.
+    """
+    if isinstance(result, np.ndarray):
+        from .utils import ndarray
+
+        return ndarray.from_numpy(result)
+    if isinstance(result, (list, tuple)):
+        return type(result)(_wrap_result(item) for item in result)
+    return result
+
+
 def __getattr__(name):
+    """Lazy-load asnumpy modules and fallback to numpy for unimplemented APIs.
+
+    Lookup flow:
+        1. Check _LAZY_MAPPING -- if the name maps to an asnumpy submodule,
+           import it lazily and cache the result in sys.modules.
+        2. Check for asnumpy subpackages -- try importing ``.{name}`` as
+           an asnumpy subpackage (handles modules not yet in _LAZY_MAPPING).
+        3. Check _NUMPY_DTYPE_NAMES -- dtype aliases like float32, int64
+           are resolved to numpy dtypes.
+        4. Delegate to numpy -- try ``getattr(np, name)``.
+           - If the result is callable, wrap it so that any np.ndarray
+             returned by numpy is automatically converted to asnumpy.ndarray
+             via ``_wrap_result``, and emit a warning about the fallback.
+           - Non-callable attributes are returned as-is.
+        5. If numpy doesn't have it either, raise AttributeError.
+    """
+    # Step 1: lazy-load from asnumpy submodules
     if name in _LAZY_MAPPING:
         module_path = _LAZY_MAPPING[name]
         module = importlib.import_module(module_path, package=__package__)
         if name == module_path.strip("."):
-            return module
-        return getattr(module, name)
+            # The import above sets sys.modules[__name__].name = module
+            # (e.g. asnumpy.array = <module>). When the module has a
+            # function with the same name, replace it so future lookups
+            # find the function instead of the module.
+            if hasattr(module, name):
+                result = getattr(module, name)
+            else:
+                result = module
+        else:
+            result = getattr(module, name)
+        # Cache the resolved attribute to avoid re-running __getattr__
+        sys.modules[__name__].__dict__[name] = result
+        return result
 
-    # Fall back to numpy for dtype aliases (e.g., ap.float32 -> np.float32)
+    # Step 2: numpy dtype aliases (e.g., ap.float32 -> np.float32)
     if name in _NUMPY_DTYPE_NAMES:
         return getattr(np, name)
 
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    # Step 4: general numpy fallback for unimplemented APIs
+    try:
+        numpy_attr = getattr(np, name)
+    except AttributeError:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}") from None
+
+    # Constants, dtype utilities, etc. are already handled by explicit
+    # imports at the module level. This branch catches callable functions
+    # not yet implemented on NPU.
+    if callable(numpy_attr):
+        logger.warning(
+            f"'{name}' is not yet implemented on NPU, falling back to numpy. "
+            f"This may cause performance degradation."
+        )
+
+        @functools.wraps(numpy_attr)
+        def _wrapped(*args, **kwargs):
+            return _wrap_result(numpy_attr(*args, **kwargs))
+
+        return _wrapped
+
+    return numpy_attr
 
 
 def __dir__():
@@ -400,9 +513,6 @@ def enable_logging(level="INFO", log_dir=None):
 
 if os.getenv("ASNUMPY_DEBUG", "0") == "1":
     enable_logging(level="DEBUG", log_dir=os.getenv("ASNUMPY_LOG_DIR", None))
-
-
-import atexit
 
 
 @atexit.register
