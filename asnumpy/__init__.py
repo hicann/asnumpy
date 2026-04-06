@@ -14,15 +14,25 @@
 # limitations under the License.
 # *****************************************************************************
 
+# Standard library
 import importlib
+import os
 import sys
 from typing import TYPE_CHECKING
-import os
+
+# Third-party
+import numpy as np
 from loguru import logger
+
+# Application modules
 from .cann import finalize, init, reset_device, reset_device_force, set_device
 
 if TYPE_CHECKING:
     from .array import (
+        array,
+        asarray,
+        asanyarray,
+        copy,
         empty,
         empty_like,
         eye,
@@ -38,7 +48,7 @@ if TYPE_CHECKING:
 
     from . import linalg
 
-    from .linalg.direct import dot, einsum, inner, matmul, outer, vdot, _direct_all_
+    from .linalg.direct import dot, einsum, inner, matmul, outer, vdot
 
     from .logic import (
         all,
@@ -148,11 +158,12 @@ if TYPE_CHECKING:
     )
 
     from . import random
+    from . import testing
 
     from .sorting import sort
 
     from .statistics import mean
-    
+
     from .utils import broadcast_shape, ndarray
 
     from ._types import (
@@ -168,11 +179,43 @@ if TYPE_CHECKING:
     from .io import save, savez, savez_compressed, load
 
 
+# ---------------------------------------------------------------------------
+# Top-level imports for runtime use
+# ---------------------------------------------------------------------------
+from . import random
+from . import testing
+from .utils import broadcast_shape, ndarray
+from .io import save, savez, savez_compressed, load
+from .linalg.direct import _direct_all_
+
+# NumPy-compatible constants
+from numpy import e, euler_gamma, inf, nan, newaxis, pi
+
+# NumPy-compatible dtype types
+from numpy import (
+    bool_, int8, int16, int32, int64,
+    uint8, uint16, uint32, uint64,
+    float16, float32, float64,
+    complex64, complex128,
+    dtype, finfo, iinfo,
+)
+
+# NumPy-compatible dtype helper functions
+from numpy import issubdtype, promote_types, can_cast, result_type
+
+
 _LAZY_MAPPING = {
     # .array
+    "array": ".array",
+    "asarray": ".array",
+    "asanyarray": ".array",
+    "copy": ".array",
     "empty": ".array", "empty_like": ".array", "eye": ".array", "full": ".array",
     "full_like": ".array", "identity": ".array", "linspace": ".array", "ones": ".array",
     "ones_like": ".array", "zeros": ".array", "zeros_like": ".array",
+    # .cann
+    "finalize": ".cann", "init": ".cann",
+    "reset_device": ".cann", "reset_device_force": ".cann", "set_device": ".cann",
     # .linalg
     "linalg": ".linalg",
     # .linalg.direct
@@ -218,36 +261,111 @@ _LAZY_MAPPING = {
     "broadcast_shape": ".utils", "ndarray": ".utils",
 }
 
-
-_EAGER_EXPORTS = [
-    "finalize", "init", "reset_device", "reset_device_force", "set_device",
+# NumPy re-exported names: these are imported at module level and must
+# appear in __all__ so that __getattr__ does not try to re-resolve them.
+_NUMPY_REEXPORTS = [
+    # constants
+    "e", "euler_gamma", "inf", "nan", "newaxis", "pi",
+    # dtype types
+    "bool_", "int8", "int16", "int32", "int64",
+    "uint8", "uint16", "uint32", "uint64",
+    "float16", "float32", "float64",
+    "complex64", "complex128",
+    "dtype", "finfo", "iinfo",
+    # dtype helpers
+    "issubdtype", "promote_types", "can_cast", "result_type",
 ]
 
-__all__ = _EAGER_EXPORTS + list(_LAZY_MAPPING.keys())
+__all__ = list(_LAZY_MAPPING.keys()) + _NUMPY_REEXPORTS
+__all__.extend(_direct_all_)
 
 
-# Get version from package metadata
-try:
-    from importlib.metadata import version
-    __version__ = version("asnumpy")
-except Exception:
-    __version__ = "0.2.0"
-
+# ---------------------------------------------------------------------------
+# Module-level __getattr__: automatic numpy fallback for unimplemented APIs
+# ---------------------------------------------------------------------------
+# Python's module attribute lookup order:
+#   1. Explicit imports / __dict__  →  found? return immediately
+#   2. Not found?  →  call __getattr__(name) if defined on the module
+#
+# Example: when a user writes `ap.tri(3)`, Python cannot find "tri" in
+# asnumpy's explicit imports, so it calls __getattr__("tri"). This function
+# then delegates to numpy.tri and wraps the returned np.ndarray into an
+# asnumpy.ndarray, so the user gets a seamless experience.
+#
+# Guard: if a name is declared in __all__ but has no actual implementation
+# (e.g. a planned-but-not-yet-implemented operator), we raise AttributeError
+# immediately instead of silently falling back to numpy. This prevents real
+# bugs from being masked — if we claimed to support "sin", it MUST work on
+# NPU, not quietly run on CPU via numpy.
+# ---------------------------------------------------------------------------
 
 def __getattr__(name):
+    """Lazy-load asnumpy modules and fallback to numpy for unimplemented APIs.
+
+    Lookup flow:
+        1. Check _LAZY_MAPPING — if the name maps to an asnumpy submodule,
+           import it lazily and cache the result in sys.modules.
+        2. Delegate to numpy — try ``getattr(np, name)``.
+        3. If the result is callable, wrap it so that any np.ndarray
+           returned by numpy is automatically converted to asnumpy.ndarray
+           via ``_wrap_result``. Non-callable attributes (e.g. constants)
+           are returned as-is.
+
+    This is the same pattern used by CuPy for APIs it has not yet ported
+    to GPU: the user gets a working API immediately, and native
+    implementations can be added incrementally without breaking existing
+    user code.
+    """
+    # Step 1: lazy-load from asnumpy submodules
     if name in _LAZY_MAPPING:
         module_path = _LAZY_MAPPING[name]
         module = importlib.import_module(module_path, package=__package__)
-        if name == module_path.strip("."):
-            return module
-        return getattr(module, name)
+        # If name matches the last segment of the path (e.g. "array" == ".array"),
+        # it could be a module or a function inside it. Try the attribute first.
+        attr = getattr(module, name, None)
+        if attr is not None:
+            return attr
+        return module
 
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    # Step 2: delegate to numpy
+    try:
+        attr = getattr(np, name)
+    except AttributeError:
+        raise AttributeError(
+            f"module 'asnumpy' has no attribute {name!r}"
+        )
+
+    # Wrap callables so that np.ndarray return values become asnumpy.ndarray.
+    # Non-callable attributes (e.g. np.ndarray subclass types) pass through.
+    if callable(attr):
+        def _wrapped(*args, **kwargs):
+            result = attr(*args, **kwargs)
+            return _wrap_result(result)
+        # Preserve introspection so that tracebacks and help() look correct
+        _wrapped.__name__ = name
+        _wrapped.__qualname__ = f'asnumpy.{name}'
+        _wrapped.__module__ = 'asnumpy'
+        return _wrapped
+
+    return attr
 
 
-def __dir__():
-    return __all__ + ["__version__"]
+def _wrap_result(result):
+    """Recursively convert np.ndarray values to asnumpy.ndarray.
 
+    This handles the common return types from numpy functions:
+        - np.ndarray       → asnumpy.ndarray (via from_numpy)
+        - tuple of arrays  → tuple of asnumpy.ndarray
+        - list of arrays   → list of asnumpy.ndarray
+        - scalars / other  → returned as-is
+    """
+    if isinstance(result, np.ndarray):
+        return ndarray.from_numpy(result)
+    if isinstance(result, tuple):
+        return tuple(_wrap_result(r) for r in result)
+    if isinstance(result, list):
+        return [_wrap_result(r) for r in result]
+    return result
 
 
 logger.disable("asnumpy")
