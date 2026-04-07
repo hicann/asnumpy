@@ -18,7 +18,7 @@
 
 AsNumpy is a lightweight Python library for scientific computing on Ascend NPU, fully compatible with the NumPy API.
 It wraps Huawei CANN operators through a pybind11 binding layer, exposing them via the `NPUArray` data structure that mirrors `numpy.ndarray`.
-Developed by the AISS Group at Harbin Institute of Technology in collaboration with the Huawei CANN team.
+Developed by the AISS Group and the ISE Group at Harbin Institute of Technology, in collaboration with the Huawei CANN team.
 
 ```python
 import numpy as np
@@ -85,7 +85,17 @@ uv sync
 ```bash
 git clone --recursive https://gitcode.com/cann/asnumpy.git
 cd asnumpy
+
+# Upgrade pip, setuptools, and wheel to their latest versions
+pip install --upgrade pip setuptools wheel
+
+# Install the 'build' package, which provides a simple build front-end for Python packages
+pip install build
+
+# Build the current Python project (create source distribution and wheel)
 python -m build
+
+# Install all generated wheel (.whl) files from the dist/ directory
 pip install dist/*.whl
 ```
 
@@ -153,7 +163,7 @@ AsNumpy is being developed and maintained by the [School of Computer Science, Ha
 ## Acknowledgements
 
 - AISS Group, School of Computer Science, Harbin Institute of Technology — Prof. Su Tonghua's team
-- School of Computer Science, Harbin Institute of Technology — Prof. Wang Tiantian's team
+- ISE Group, School of Computer Science, Harbin Institute of Technology — Prof. Wang Tiantian's team
 - Huawei CANN team
 
 ---
