@@ -4,11 +4,12 @@
 
 1. [项目概述](#一项目概述)
 2. [开发流程](#二开发流程)
-3. [后端开发 (C++)](#三后端开发-c)
-4. [绑定层 (Pybind11)](#四绑定层-pybind11)
-5. [前端开发 (Python)](#五前端开发-python)
-6. [测试编写](#六测试编写)
-7. [编译与运行](#七编译与运行)
+3. [Branch Management](#三branch-management)
+4. [后端开发 (C++)](#四后端开发-c)
+5. [绑定层 (Pybind11)](#五绑定层-pybind11)
+6. [前端开发 (Python)](#六前端开发-python)
+7. [测试编写](#七测试编写)
+8. [编译与运行](#八编译与运行)
 
 ---
 
@@ -70,11 +71,221 @@ asnumpy/
 
 ---
 
-## 三、后端开发 (C++)
+## 三、Branch Management
+
+### 3.1 Overview
+
+Asnumpy uses a simplified branching model based on a single main branch with release branches for stabilization:
+
+```
+master ─── PR_A ─── PR_B ─── PR_C ─── PR_D ─── PR_E ─── PR_F
+                          │                      │
+                   release/v0.2.0          cherry-pick hotfix
+                          │                      │
+                    tag v0.2.0               tag v0.2.1
+                    tag v0.2.1                    │
+                                                PR to master
+```
+
+### 3.2 Branch Types
+
+| Branch | Purpose | Lifetime |
+|--------|---------|----------|
+| `master` | Main branch. All feature PRs merge here. | Permanent |
+| `feature/<name>` | Develop a new feature or enhancement. | Short-lived |
+| `fix/<name>` | Fix a bug. | Short-lived |
+| `release/vX.Y.Z` | Stabilize and test a release. | Per release |
+| `hotfix/<name>` | Backport a fix from a release branch to master. | Short-lived |
+
+### 3.3 Workflow
+
+#### Feature Development
+
+1. Create a feature branch from `master`:
+   ```bash
+   git checkout master
+   git pull upstream master
+   git checkout -b feature/my-feature
+   ```
+2. Develop, test, and commit.
+3. Push and open a Pull Request targeting `master`.
+4. Ensure code review and CI pass.
+5. Merge the PR.
+
+#### Release Process
+
+1. Cut a release branch from `master`:
+   ```bash
+   git checkout master
+   git checkout -b release/v0.3.0
+   ```
+2. Run tests and stabilize. Fix any issues directly on the release branch.
+3. Tag the release:
+   ```bash
+   git tag v0.3.0
+   ```
+4. If additional fixes are needed after tagging, apply them on the release branch and tag a new patch version (e.g., `v0.3.1`).
+5. Cherry-pick those fixes back to `master` (see [Hotfix Process](#333-hotfix-process)).
+6. Delete the release branch when the release series is no longer maintained:
+   ```bash
+   git branch -d release/v0.3.0
+   ```
+
+#### Hotfix Process
+
+When a bug is fixed on a release branch, the fix must be brought back to `master` so that future releases include it:
+
+1. Fix the bug on the release branch and tag the patch release.
+2. Cherry-pick the fix to a new hotfix branch:
+   ```bash
+   git checkout -b hotfix/backport-fix-xxx master
+   git cherry-pick <commit-hash-of-the-fix>
+   ```
+3. Push the hotfix branch and open a Pull Request targeting `master`.
+4. This PR goes through the normal code review and CI pipeline.
+5. After merge, delete the hotfix branch:
+   ```bash
+   git branch -d hotfix/backport-fix-xxx
+   ```
+
+> **Why use a separate hotfix branch instead of cherry-picking directly to master?**
+> A dedicated branch allows the fix to go through PR review and CI checks, ensuring the same quality standards as any other contribution.
+
+### 3.4 Merge Strategy
+
+**Always use merge commits. Never squash.**
+
+```bash
+# When merging PRs on the platform, select "Merge" (not "Squash and merge").
+# When merging locally:
+git merge --no-ff feature/my-feature
+```
+
+**Rationale:** Squash merges create a new commit that discards the original commit history and authorship. This breaks contribution statistics on the repository homepage and makes it harder to trace changes back to their original authors. Merge commits preserve the full history and ensure every contributor is properly credited.
+
+### 3.5 Branch Naming Conventions
+
+| Pattern | Example | Description |
+|---------|---------|-------------|
+| `feature/<name>` | `feature/add-sinc-function` | New feature or enhancement |
+| `fix/<name>` | `fix/incorrect-signbit` | Bug fix |
+| `release/vX.Y.Z` | `release/v0.3.0` | Release stabilization |
+| `hotfix/<name>` | `hotfix/backport-signbit-fix` | Backported fix from a release branch |
+
+Use lowercase kebab-case for branch names. Keep names concise but descriptive.
+
+### 3.6 CI/CD Pipeline
+
+CI/CD pipelines are triggered by events, not by branch types. Configure the following rules:
+
+| Event | Pipeline | Description |
+|-------|----------|-------------|
+| PR created/updated targeting `master` | CI | Run tests, linting, and code analysis on every PR |
+| Push to `master` (post-merge) | CI | Verify the merged code is healthy |
+| Tag created (`vX.Y.Z`) | CD | Build release artifacts, publish packages |
+
+No additional CI configuration is needed for `feature/`, `fix/`, or `hotfix/` branches. As long as the PR targets `master`, CI will run regardless of the source branch name.
+
+### 3.7 Contributor Workflow
+
+#### Team Members (with push access)
+
+Team members create branches directly in the upstream repository:
+
+```
+upstream/master ←── PR ─── upstream/fix/xxx
+```
+
+```bash
+git clone <upstream-url>
+git checkout master
+git pull upstream master
+git checkout -b fix/signbit-error
+# Develop, commit, push
+git push upstream fix/signbit-error
+# Open a PR on the platform: fix/signbit-error → master
+```
+
+#### External Contributors (without push access)
+
+External contributors work in their own fork:
+
+```
+upstream/master ←── PR ─── fork/fix/xxx
+```
+
+```bash
+git clone <fork-url>
+git checkout master
+git pull upstream master
+git checkout -b fix/signbit-error
+# Develop, commit, push
+git push fork fix/signbit-error
+# Open a PR on the platform: fork/fix/xxx → upstream/master
+```
+
+#### Key Points
+
+- **One PR per change.** Always create a PR directly from the working branch to `master`. There is no need for a two-step PR process (e.g., PR to a fix branch, then PR from fix branch to master).
+- **All code changes go through PR.** No direct pushes to `master`.
+- **All PRs go through CI and code review.** Regardless of whether the contributor is a team member or an external contributor.
+
+### 3.8 Commit Hygiene and Review Norms
+
+#### Commit Quality
+
+Every commit in a PR should represent a single, meaningful change. Before submitting a PR, contributors are expected to clean up their commit history:
+
+**Bad (fragmented commits that pad the count):**
+```
+fix typo
+fix another typo
+update import
+add sinc function
+add sinc test
+```
+
+**Good (clean, meaningful commits):**
+```
+feat: add sinc function
+test: add sinc unit tests
+```
+
+#### Cleaning Up Commits Before Submitting a PR
+
+Use interactive rebase to squash trivial commits:
+
+```bash
+git rebase -i master
+# Mark trivial commits with 's' (squash) or 'f' (fixup)
+# Keep only meaningful commits as 'p' (pick)
+git push --force  # Update the remote branch after rebase
+```
+
+#### Reviewer Responsibilities
+
+- Reviewers should check commit quality in addition to code quality.
+- If a PR contains fragmented or trivial commits, the reviewer should request the contributor to clean them up before approving the PR.
+- A PR with well-organized commit history makes it easier to understand the change, bisect bugs, and revert individual changes if needed.
+
+#### Relationship Between Platform Settings and Commit Hygiene
+
+| Aspect | Who is responsible | What happens |
+|--------|--------------------|--------------|
+| Disable platform-level squash | Platform setting | Prevents loss of author attribution |
+| Merge commit strategy | Platform setting | Preserves full commit history and contribution stats |
+| Commit cleanup (squash trivial commits) | Contributor (local) | Ensures meaningful commit history |
+| Enforce commit quality | Reviewer | Ensures PRs have clean, organized commits |
+
+> **Summary:** The platform is configured to always use merge commits and disallow squash to preserve authorship. Contributors are responsible for keeping their own commit history clean and meaningful. Reviewers enforce this standard during code review.
+
+---
+
+## 四、后端开发 (C++)
 
 后端开发主要涉及在 C++ 层面实现 NPU 算子调用逻辑。本节以开发 `sinc` 函数为例。
 
-### 3.1 添加函数声明
+### 4.1 添加函数声明
 
 在对应的头文件中添加函数声明。`sinc` 属于数学模块的特殊函数，声明位于：
 
@@ -95,7 +306,7 @@ asnumpy/
 NPUArray Sinc(const NPUArray& x, std::optional<py::dtype> dtype = std::nullopt);
 ```
 
-### 3.2 实现函数主体
+### 4.2 实现函数主体
 
 在对应的源文件中实现函数逻辑：
 
@@ -171,7 +382,7 @@ NPUArray Sinc(const NPUArray& x, std::optional<py::dtype> dtype) {
 }
 ```
 
-### 3.3 关键实现要点
+### 4.3 关键实现要点
 
 #### 错误处理
 
@@ -202,9 +413,9 @@ if (error != ACL_SUCCESS) {
 
 ---
 
-## 四、绑定层 (Pybind11)
+## 五、绑定层 (Pybind11)
 
-### 4.1 添加函数绑定
+### 5.1 添加函数绑定
 
 在对应的绑定文件中添加函数绑定：
 
@@ -229,11 +440,11 @@ namespace asnumpy {
 
 ---
 
-## 五、前端开发 (Python)
+## 六、前端开发 (Python)
 
 前端开发主要涉及将 C++ 函数暴露到 Python 层，并确保 API 与 NumPy 兼容。
 
-### 5.1 添加 Python 包装层
+### 6.1 添加 Python 包装层
 
 在对应的 Python 模块中导入 C++ 函数，并添加 Python 包装层：
 
@@ -258,7 +469,7 @@ def sinc(x: ndarray, dtype: Optional[np.dtype] = None) -> ndarray:
     return ndarray(_ap_sinc(x, _convert_dtype(dtype)))
 ```
 
-### 5.2 导出到主命名空间
+### 6.2 导出到主命名空间
 
 在主包的 `__init__.py` 中添加函数：
 
@@ -280,11 +491,11 @@ __all__ = [
 
 ---
 
-## 六、测试编写
+## 七、测试编写
 
 asnumpy 使用 pytest 和自定义测试框架编写测试。
 
-### 6.1 测试文件组织
+### 7.1 测试文件组织
 
 测试文件按模块组织，位于 `tests/asnumpy_tests/` 目录：
 
@@ -297,7 +508,7 @@ tests/
     └── ...
 ```
 
-### 6.2 编写测试用例
+### 7.2 编写测试用例
 
 **文件位置**: `tests/asnumpy_tests/math_tests/test_miscellaneous.py`
 
@@ -333,7 +544,7 @@ def test_sinc_at_zero(xp, dtype):
     return xp.sinc(a)
 ```
 
-### 6.3 装饰器说明
+### 7.3 装饰器说明
 
 asnumpy 提供了丰富的测试装饰器，用于参数化测试和结果比较。
 
@@ -393,9 +604,9 @@ def test_func(n):
 
 ---
 
-## 七、编译与运行
+## 八、编译与运行
 
-### 7.1 编译项目
+### 8.1 编译项目
 
 在开发模式下安装和编译项目：
 
@@ -403,7 +614,7 @@ def test_func(n):
 pip install -e .
 ```
 
-### 7.2 运行测试
+### 8.2 运行测试
 
 #### 运行所有测试
 
