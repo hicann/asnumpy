@@ -195,7 +195,7 @@ aclScalar* CreateScalar(ValueType value, aclDataType dtype) {
             return aclCreateScalar(&converted, ACL_INT32);
         }
         default:
-            throw std::runtime_error("Unsupported dtype: " + std::to_string(static_cast<int>(dtype)));
+            throw std::runtime_error(fmt::format("Unsupported dtype: {}", static_cast<int>(dtype)));
     }
 }
 
@@ -228,3 +228,45 @@ template aclScalar* CreateScalar<uint32_t>(uint32_t, aclDataType);
 template aclScalar* CreateScalar<uint16_t>(uint16_t, aclDataType);
 template aclScalar* CreateScalar<uint8_t>(uint8_t, aclDataType);
 template aclScalar* CreateScalar<bool>(bool, aclDataType);
+
+// 3) CreateScalar(py::object scalar, aclDataType dtype) —— Python 对象版本
+template<typename T>
+aclScalar* CreateScalarFromPython(const py::object& scalar, aclDataType dtype) {
+    try {
+        T value = py::cast<T>(scalar);
+        return CreateScalar(value, dtype);
+    } catch (const py::cast_error& e) {
+        throw std::runtime_error(fmt::format("Failed to convert Python object to {}: {}", typeid(T).name(), e.what()));
+    }
+}
+
+// 类型映射表
+using TypeHandler = std::function<aclScalar*(const py::object&, aclDataType)>;
+static const std::unordered_map<aclDataType, TypeHandler> type_handlers = {
+    {ACL_FLOAT,   CreateScalarFromPython<float>},
+    {ACL_DOUBLE,  CreateScalarFromPython<double>},
+    {ACL_INT32,   CreateScalarFromPython<int32_t>},
+    {ACL_INT64,   CreateScalarFromPython<int64_t>},
+    {ACL_INT8,    CreateScalarFromPython<int8_t>},
+    {ACL_INT16,   CreateScalarFromPython<int16_t>},
+    {ACL_UINT8,   CreateScalarFromPython<uint8_t>},
+    {ACL_UINT16,  CreateScalarFromPython<uint16_t>},
+    {ACL_UINT32,  CreateScalarFromPython<uint32_t>},
+    {ACL_UINT64,  CreateScalarFromPython<uint64_t>},
+    {ACL_BOOL,    CreateScalarFromPython<bool>},
+};
+
+aclScalar* CreateScalar(const py::object& scalar, aclDataType dtype) {
+    auto it = type_handlers.find(dtype);
+    if (it != type_handlers.end()) {
+        return it->second(scalar, dtype);
+    }
+    
+    // default
+    try {
+        double value = py::cast<double>(scalar);
+        return CreateScalar(value, dtype);
+    } catch (const py::cast_error& e) {
+        throw std::runtime_error(fmt::format("Failed to convert Python object to appropriate type for dtype {}: {}", static_cast<int>(dtype), e.what()));
+    }
+}
