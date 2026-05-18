@@ -35,7 +35,7 @@ classifiers = [
     "Intended Audience :: Developers",
     "Operating System :: POSIX :: Linux"
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "numpy>=1.26.0",
     "loguru>=0.7.0"
@@ -45,9 +45,11 @@ dependencies = [
 dev = [
     "ruff>=0.15.0",
     "mypy>=1.19.0",
+    "pre-commit>=4.0.0",
 ]
 test = [
     "pytest>=9.0.0",
+    "pytest-cov>=6.0.0",
 ]
 
 [project.urls]
@@ -56,7 +58,7 @@ Repository = "https://gitcode.com/cann/asnumpy"
 
 # scikit-build-core configuration
 [tool.scikit-build.wheel]
-packages = ["asnumpy"]
+packages = ["src/asnumpy"]
 exclude = ["**/*.pyc", "**/__pycache__", "**/test", "**/tests"]
 
 [tool.scikit-build.install]
@@ -84,14 +86,27 @@ verbose = true
 testpaths = ["tests"]
 addopts = [
     "--import-mode=importlib",
-    "-v"
+    "-v",
+    "--strict-markers",
+    "--strict-config",
+]
+
+# Coverage configuration (Python layer only; C++ coverage via gcov/lcov post-1.0)
+[tool.coverage.run]
+source = ["src/asnumpy"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
 ]
 
 # Ruff configuration (linter + formatter)
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
 line-length = 100
-src = ["asnumpy", "tests"]
+src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = [
@@ -106,13 +121,18 @@ select = [
 ignore = [
     "E501",   # line too long (handled by formatter)
     "B008",   # function call in default argument (common in NumPy API)
+    "B017",   # pytest.raises(Exception) is intentional for NPU operator error diversity
+    "UP038",  # isinstance(X, Y) with | syntax not available on Python 3.10
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
 
 [tool.ruff.lint.isort]
 
 # MyPy configuration
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
 ignore_missing_imports = true
