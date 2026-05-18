@@ -39,7 +39,6 @@ import numpy
 import pytest
 
 import asnumpy as ap
-from asnumpy import testing
 
 
 # ========== 辅助函数 ==========
@@ -60,6 +59,7 @@ def _assert_shape_dtype(result, expected_shape, expected_dtype):
 # ==========================================================================
 # 1. 输出 shape / dtype 测试
 # ==========================================================================
+
 
 @pytest.mark.parametrize(
     "func, kwargs, expected_dtype",
@@ -105,8 +105,9 @@ def test_distribution_shape_dtype_vector_size(func, kwargs, expected_dtype):
 # 2. seed 可复现性测试
 # ==========================================================================
 
+
 @pytest.mark.xfail(
-    reason="random seed API is not exposed and backend seed handling is inconsistent",
+    reason="[FIXABLE] random seed API not exposed, backend seed handling inconsistent",
     strict=True,
 )
 def test_random_seed_reproducibility_placeholder():
@@ -121,6 +122,7 @@ def test_random_seed_reproducibility_placeholder():
 # ==========================================================================
 # 3. size=0 边界测试
 # ==========================================================================
+
 
 def test_uniform_empty_size():
     """空数组: uniform 的 size=0"""
@@ -138,72 +140,74 @@ def test_normal_empty_size_2d():
 # 4. 非法参数测试
 # ==========================================================================
 
+
 @pytest.mark.parametrize("a", [0.0, -1.0])
 def test_pareto_invalid_a(a):
     """测试 pareto 的非法 a 参数"""
-    with pytest.raises(RuntimeError, match=r"pareto"):
+    with pytest.raises(ValueError, match=r"Pareto"):
         ap.random.pareto(a, (2, 3))
 
 
 @pytest.mark.parametrize(
-    "kwargs, expected_message",
+    "kwargs",
     [
-        ({"n": -1, "p": 0.5, "size": (2, 3)}, r"Binomial: n="),
-        ({"n": 3, "p": -0.1, "size": (2, 3)}, r"Binomial: p="),
-        ({"n": 3, "p": 1.1, "size": (2, 3)}, r"Binomial: p="),
+        {"n": -1, "p": 0.5, "size": (2, 3)},
+        {"n": 3, "p": -0.1, "size": (2, 3)},
+        {"n": 3, "p": 1.1, "size": (2, 3)},
     ],
 )
-def test_binomial_invalid_parameters(kwargs, expected_message):
+def test_binomial_invalid_parameters(kwargs):
     """测试 binomial 的非法参数"""
-    with pytest.raises(RuntimeError, match=expected_message):
+    with pytest.raises(ValueError, match=r"Binomial"):
         ap.random.binomial(**kwargs)
 
 
 @pytest.mark.parametrize("scale", [0.0, -1.0])
 def test_exponential_invalid_scale(scale):
     """测试 exponential 的非法 scale 参数"""
-    with pytest.raises(RuntimeError, match=r"Exponential: scale="):
+    with pytest.raises(ValueError, match=r"Exponential"):
         ap.random.exponential(scale, (2, 3))
 
 
 @pytest.mark.parametrize("p", [0.0, 1.0, -0.1])
 def test_geometric_invalid_p(p):
     """测试 geometric 的非法 p 参数"""
-    with pytest.raises(RuntimeError, match=r"Geometric: p="):
+    with pytest.raises(ValueError, match=r"Geometric"):
         ap.random.geometric(p, (2, 3))
 
 
 @pytest.mark.parametrize("scale", [0.0, -1.0])
 def test_gumbel_invalid_scale(scale):
     """测试 gumbel 的非法 scale 参数"""
-    with pytest.raises(RuntimeError, match=r"Gumbel: scale="):
+    with pytest.raises(ValueError, match=r"Gumbel"):
         ap.random.gumbel(0.0, scale, (2, 3))
 
 
 @pytest.mark.parametrize("scale", [0.0, -1.0])
 def test_laplace_invalid_scale(scale):
     """测试 laplace 的非法 scale 参数"""
-    with pytest.raises(RuntimeError, match=r"Laplace: scale="):
+    with pytest.raises(ValueError, match=r"Laplace"):
         ap.random.laplace(0.0, scale, (2, 3))
 
 
 @pytest.mark.parametrize("scale", [0.0, -1.0])
 def test_logistic_invalid_scale(scale):
     """测试 logistic 的非法 scale 参数"""
-    with pytest.raises(RuntimeError, match=r"Logistic: scale="):
+    with pytest.raises(ValueError, match=r"Logistic"):
         ap.random.logistic(0.0, scale, (2, 3))
 
 
 @pytest.mark.parametrize("sigma", [0.0, -1.0])
 def test_lognormal_invalid_sigma(sigma):
     """测试 lognormal 的非法 sigma 参数"""
-    with pytest.raises(RuntimeError, match=r"Lognormal: sigma="):
+    with pytest.raises(ValueError, match=r"Lognormal"):
         ap.random.lognormal(0.0, sigma, (2, 3))
 
 
 # ==========================================================================
 # 5. 特殊边界行为
 # ==========================================================================
+
 
 def test_binomial_zero_trials_returns_zeros():
     """特殊边界: binomial(n=0) 应返回全 0 数组"""
