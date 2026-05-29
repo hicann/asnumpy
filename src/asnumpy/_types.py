@@ -14,13 +14,18 @@
 # limitations under the License.
 # *****************************************************************************
 
+from __future__ import annotations
+
 from collections.abc import Sequence
-from typing import TypeVar, Union
+from typing import TYPE_CHECKING, TypeVar, Union
 
 import numpy as np
 
-ArrayLike = Union[
-    "ndarray",  # NPUArray
+if TYPE_CHECKING:
+    from .utils import ndarray  # noqa: F401
+
+ArrayLike = Union[  # noqa: UP007
+    "ndarray",  # NPUArray — string forward ref to avoid circular import
     np.ndarray,
     int,
     float,
@@ -29,15 +34,15 @@ ArrayLike = Union[
     Sequence,
 ]
 
-DTypeLike = Union[np.dtype, str, type, None]
+DTypeLike = np.dtype | str | type | None
 
-ShapeLike = Union[int, Sequence[int]]
+ShapeLike = int | Sequence[int]
 
-AxisLike = Union[int, Sequence[int], None]
+AxisLike = int | Sequence[int] | None
 
-AxisOptional = Union[int, Sequence[int], None]
+AxisOptional = int | Sequence[int] | None
 
-ScalarLike = Union[int, float, complex, bool]
+ScalarLike = int | float | complex | bool
 
 T = TypeVar("T")
 
