@@ -14,27 +14,4 @@
 # limitations under the License.
 # *****************************************************************************
 
-"""pytest configuration for AsNumpy — multi-NPU options, device fixtures, and pytester plugin."""
-
-import pytest
-
-
-def pytest_addoption(parser):
-    parser.addoption("--multi-npu", action="store_true", default=False, help="run multi-NPU tests")
-    parser.addoption(
-        "--npu-id", action="store", default=0, type=int, help="NPU device ID to use (default: 0)"
-    )
-
-
-@pytest.fixture(scope="session")
-def multi_npu(request):
-    return request.config.getoption("--multi-npu")
-
-
-@pytest.fixture(scope="session")
-def npu_id(request):
-    return request.config.getoption("--npu-id")
-
-
-# Enable pytester plugin for testing AsNumpy test utilities
-pytest_plugins = ["pytester"]
+"""Tests for NumPy 2.x interoperability protocols."""
