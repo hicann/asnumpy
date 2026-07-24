@@ -15,10 +15,12 @@
  *****************************************************************************/
 
 #include <asnumpy/math/other_special_functions.hpp>
-#include <asnumpy/utils/acl_executor.hpp>
+#include <asnumpy/utils/dtype_promotion.hpp>
+
 #include <acl/acl.h>
 #include <aclnn/aclnn_base.h>
 #include <aclnnop/aclnn_sinc.h>
+
 #include <fmt/format.h>
 #include <stdexcept>
 
@@ -28,19 +30,15 @@ namespace asnumpy {
  * @brief Element-wise sinc function using aclnnSinc.
  */
 NPUArray Sinc(const NPUArray& x, std::optional<py::dtype> dtype) {
-    py::dtype out_py_dtype = NPUArray::GetPyDtype(ACL_DOUBLE);
-    if (dtype != std::nullopt) {
-        out_py_dtype = *dtype;
-    }
-    return EXECUTE_UNARY_OP(
-        x, out_py_dtype,
+    return UnaryFloatingPromoteOp(
+        x, /*supports_float64=*/true,
         [](aclTensor* in, aclTensor* out, uint64_t* workspaceSize, aclOpExecutor** executor) {
             return aclnnSincGetWorkspaceSize(in, out, workspaceSize, executor);
         },
         [](void* workspace, uint64_t workspaceSize, aclOpExecutor* executor, void* stream) {
             return aclnnSinc(workspace, workspaceSize, executor, nullptr);
         },
-        "Sinc", "aclnnSinc");
+        "Sinc", "aclnnSinc", dtype);
 }
 
 } // namespace asnumpy
